@@ -6,13 +6,14 @@ import {
   type WorkItemRelation,
 } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces.js";
 import assert from "node:assert";
+import { string } from "yargs";
 
 export interface GetDependenciesOptions {
   connection: WebApi;
   query: string;
 }
 
-interface Node {
+export interface Node {
   id: number;
   area: string;
   type: string;
@@ -22,14 +23,15 @@ interface Node {
   url: string;
 }
 
-interface Edge {
-  from: string; // url
-  to: string; // url
+export interface Edge {
+  from: number;
+  to: number;
   name: string;
 }
 
 const useRelations = [
   "System.LinkTypes.Dependency-Forward", // Successor
+  "System.LinkTypes.Hierarchy-Forward", // Child
 ];
 
 export async function getDependencies({
@@ -78,18 +80,20 @@ export async function getDependencies({
     return relations
       .filter((relation) => relation.rel && useRelations.includes(relation.rel))
       .map((relation) => ({
-        from: wi.url!,
-        to: relation.url!,
-        name: relation.attributes!["name"],
+        from: wi.id,
+        to: nodes.find((node) => node.url === relation.url!)?.id,
+        name: relation.attributes?.["name"],
       }))
-      .filter((edge) => edgeTargetIsExistingNode(nodes, edge));
+      .filter((edge) => edgeTargetIsExistingNode(edge));
   });
 
   return { nodes, edges };
 }
 
-function edgeTargetIsExistingNode(nodes: Node[], edge: Edge): boolean {
-  return nodes.some((node) => node.url === edge.to);
+function edgeTargetIsExistingNode(edge: Partial<Edge>): edge is Edge {
+  return (
+    edge.from != undefined && edge.to != undefined && edge.name != undefined
+  );
 }
 
 // function relationIsSuccessor(relation: WorkItemRelation): boolean {
@@ -114,4 +118,76 @@ function getWorkItemIdsFromResult(queryResult: WorkItemQueryResult): number[] {
       .filter((id): id is number => id != null);
     return Array.from(new Set(idsWithDuplicates));
   }
+}
+
+export function generateDotGraph({
+  nodes,
+  edges,
+}: {
+  nodes: Node[];
+  edges: Edge[];
+}) {
+  const renderedNodes = nodes.map(renderNode).join("\n");
+  const renderedEdges = edges.map(renderEdge).join("\n");
+  return `digraph StoryMap {
+  rankdir=LR
+  node [shape=plaintext]
+  
+  ${renderedNodes}
+  ${renderedEdges}
+  }
+  `;
+}
+
+function renderNode(node: Node): string {
+  return `"${node.id}" [label=${generateNodeTableStyleLabel(node)}]`;
+}
+
+function generateNodeTableStyleLabel(node: Node): string {
+  return `<
+<TABLE CELLBORDER="0" ALIGN="LEFT">
+  <TR>
+    <TD ROWSPAN="5" BGCOLOR="${getGraphvizColorForType(node)}" WIDTH="5" TOOLTIP="${node.type}"> </TD>
+    <TD COLSPAN="2"><B>${node.id} </B> ${node.title}</TD>
+  </TR>
+  <TR>
+    <TD>State: <FONT POINT-SIZE="20" COLOR="${getGraphvizColorForState(node)}">●</FONT> ${node.state}</TD>
+  </TR>
+</TABLE>>`;
+}
+
+function getGraphvizColorForType(node: Node): string {
+  switch (node.type) {
+    case "User Story":
+      return "deepskyblue2";
+    case "Task":
+      return "yellow";
+    case "Feature":
+      return "darkorchid1";
+    case "Epic":
+      return "gold";
+  }
+  return "white";
+}
+
+function getGraphvizColorForState(node: Node): string {
+  switch (node.state) {
+    case "Active":
+      return "royalblue";
+    case "Ready":
+      return "greenyellow";
+    case "New":
+      return "grey";
+    case "Refinement":
+      return "darkseagreen1";
+    case "Closed":
+      return "forestgreen";
+    case "Product Increment":
+      return "royalblue";
+  }
+  return "black";
+}
+
+function renderEdge(edge: Edge): string {
+  return `"${edge.from}" -> "${edge.to}" [label="${edge.name}"]`;
 }

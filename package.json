@@ -17,8 +17,8 @@
     "@types/yargs": "^17.0.32",
     "prettier": "^3.3.3",
     "tsx": "^4.16.2",
-    "vitest": "^2.0.5",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vitest": "^2.0.5"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
