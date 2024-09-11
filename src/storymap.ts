@@ -2,11 +2,13 @@ import type { WebApi } from "azure-devops-node-api";
 import {
   QueryResultType,
   WorkItemExpand,
-  WorkItemQueryResult,
+  type WorkItemQueryResult,
   type WorkItemRelation,
 } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces.js";
+import { Graphviz } from "@hpcc-js/wasm-graphviz";
 import assert from "node:assert";
-import { string } from "yargs";
+
+const GV = Graphviz.load();
 
 export interface GetDependenciesOptions {
   connection: WebApi;
@@ -96,10 +98,6 @@ function edgeTargetIsExistingNode(edge: Partial<Edge>): edge is Edge {
   );
 }
 
-// function relationIsSuccessor(relation: WorkItemRelation): boolean {
-//   return relation.rel === "System.LinkTypes.Dependency-Forward";
-// }
-
 function getWorkItemIdsFromResult(queryResult: WorkItemQueryResult): number[] {
   if (queryResult.queryResultType === QueryResultType.WorkItem) {
     const workItems = queryResult.workItems;
@@ -123,15 +121,20 @@ function getWorkItemIdsFromResult(queryResult: WorkItemQueryResult): number[] {
 export function generateDotGraph({
   nodes,
   edges,
+  orientation,
+  splines,
 }: {
   nodes: Node[];
   edges: Edge[];
+  orientation: string;
+  splines: string;
 }) {
   const renderedNodes = nodes.map(renderNode).join("\n");
   const renderedEdges = edges.map(renderEdge).join("\n");
   return `digraph StoryMap {
-  rankdir=LR
-  node [shape=plaintext]
+  splines=${splines}
+  rankdir=${orientation.toLowerCase() === "lb" ? "LB" : "TB"}
+  node [shape=plaintext margin=0]
   
   ${renderedNodes}
   ${renderedEdges}
@@ -143,15 +146,26 @@ function renderNode(node: Node): string {
   return `"${node.id}" [label=${generateNodeTableStyleLabel(node)}]`;
 }
 
+function escapeHTML(str: string) {
+  const escapedChars: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;",
+  };
+  return str.replace(/[&<>'"]/g, (tag: string) => escapedChars[tag]);
+}
+
 function generateNodeTableStyleLabel(node: Node): string {
   return `<
-<TABLE CELLBORDER="0" ALIGN="LEFT">
+<TABLE CELLBORDER="0">
   <TR>
     <TD ROWSPAN="5" BGCOLOR="${getGraphvizColorForType(node)}" WIDTH="5" TOOLTIP="${node.type}"> </TD>
-    <TD COLSPAN="2"><B>${node.id} </B> ${node.title}</TD>
+    <TD COLSPAN="2"><B>${node.id} </B> ${escapeHTML(node.title)}</TD>
   </TR>
   <TR>
-    <TD>State: <FONT POINT-SIZE="20" COLOR="${getGraphvizColorForState(node)}">●</FONT> ${node.state}</TD>
+    <TD ALIGN="LEFT">State: <FONT POINT-SIZE="20" COLOR="${getGraphvizColorForState(node)}">●</FONT> ${node.state}</TD>
   </TR>
 </TABLE>>`;
 }
@@ -190,4 +204,9 @@ function getGraphvizColorForState(node: Node): string {
 
 function renderEdge(edge: Edge): string {
   return `"${edge.from}" -> "${edge.to}" [label="${edge.name}"]`;
+}
+
+export async function generateSvg(dotGraph: string): Promise<string> {
+  const graphviz = await GV;
+  return graphviz.dot(dotGraph);
 }

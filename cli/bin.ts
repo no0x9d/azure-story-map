@@ -2,7 +2,11 @@
 
 import yargs from "yargs";
 import { createConnection } from "../src/azure-connection.js";
-import { getDependencies } from "../src/storymap.js";
+import {
+  generateDotGraph,
+  generateSvg,
+  getDependencies,
+} from "../src/storymap.js";
 import assert from "node:assert";
 
 const rawArgs = process.argv.slice(2);
@@ -32,21 +36,56 @@ yargs(rawArgs)
     "story-map",
     "create a story map for a query",
     (args) =>
-      args.option("query", {
-        alias: "q",
-        description: "wiql query for all stories",
-        type: "string",
-        coerce: argIsString,
-        requiresArg: true,
-        demandOption: true,
-      }),
-    async ({ org, pat, query }) => {
+      args
+        .option("query", {
+          alias: "q",
+          description: "wiql query for all stories",
+          type: "string",
+          coerce: argIsString,
+          requiresArg: true,
+          demandOption: true,
+        })
+        .option("format", {
+          alias: "f",
+          description: "output format of the graph",
+          choices: ["svg", "dot"],
+          type: "string",
+          default: "svg",
+        })
+        .option("orientation", {
+          alias: "O",
+          description: "orientation of the graph",
+          choices: ["lr", "tb"],
+          type: "string",
+          default: "lr",
+        })
+        .option("splines", {
+          alias: "s",
+          description: "",
+          choices: ["ortho", "polyline", "line", "spline", "curved"],
+          default: "ortho",
+        }),
+    async ({ org, pat, query, format, orientation, splines }) => {
       assert.ok(query);
       const connection = createConnection(org, pat);
-      await getDependencies({
+      const dependencies = await getDependencies({
         connection,
         query,
       });
+      const dotGraph = generateDotGraph({
+        ...dependencies,
+        orientation,
+        splines,
+      });
+
+      switch (format) {
+        case "svg":
+          const svgGraph = await generateSvg(dotGraph);
+          console.log(svgGraph);
+          break;
+        case "dot":
+          console.log(dotGraph);
+      }
     },
   )
   .demandCommand()
