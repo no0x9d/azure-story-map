@@ -121,19 +121,19 @@ function getWorkItemIdsFromResult(queryResult: WorkItemQueryResult): number[] {
 export function generateDotGraph({
   nodes,
   edges,
-  orientation,
+  direction,
   splines,
 }: {
   nodes: Node[];
   edges: Edge[];
-  orientation: string;
+  direction: string;
   splines: string;
 }) {
   const renderedNodes = nodes.map(renderNode).join("\n");
   const renderedEdges = edges.map(renderEdge).join("\n");
   return `digraph StoryMap {
   splines=${splines}
-  rankdir=${orientation.toLowerCase() === "lb" ? "LB" : "TB"}
+  rankdir=${direction.toLowerCase() === "lb" ? "LB" : "TB"}
   node [shape=plaintext margin=0]
   
   ${renderedNodes}

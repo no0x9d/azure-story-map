@@ -52,9 +52,9 @@ yargs(rawArgs)
           type: "string",
           default: "svg",
         })
-        .option("orientation", {
-          alias: "O",
-          description: "orientation of the graph",
+        .option("direction", {
+          alias: "d",
+          description: "direction of the graph layout",
           choices: ["lr", "tb"],
           type: "string",
           default: "lr",
@@ -65,8 +65,9 @@ yargs(rawArgs)
           choices: ["ortho", "polyline", "line", "spline", "curved"],
           default: "ortho",
         }),
-    async ({ org, pat, query, format, orientation, splines }) => {
+    async ({ org, pat, query, format, direction, splines }) => {
       assert.ok(query);
+
       const connection = createConnection(org, pat);
       const dependencies = await getDependencies({
         connection,
@@ -74,7 +75,7 @@ yargs(rawArgs)
       });
       const dotGraph = generateDotGraph({
         ...dependencies,
-        orientation,
+        direction,
         splines,
       });
 
