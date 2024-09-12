@@ -44,6 +44,7 @@ yargs(rawArgs)
           coerce: argIsString,
           requiresArg: true,
           demandOption: true,
+          default: "",
         })
         .option("format", {
           alias: "f",
@@ -93,9 +94,32 @@ yargs(rawArgs)
   .help()
   .parse();
 
-function argIsString(value: number | string): string {
-  if (typeof value === "string") {
-    return value;
+function argIsString(value: string): string | Promise<string> {
+  if (process.stdin.isTTY || value === "-") {
+    return readFromStdin();
   }
-  throw new Error("wiql query must be a string");
+
+  if (!value) {
+    throw new Error("wiql query is required");
+  }
+
+  return value;
+}
+
+function readFromStdin(): Promise<string> {
+  return new Promise<string>((resolve) => {
+    const stdin = process.stdin;
+    const inputChunks: string[] = [];
+    stdin.resume();
+    stdin.setEncoding("utf8");
+
+    stdin.on("data", function (chunk) {
+      inputChunks.push(chunk.toString());
+    });
+
+    stdin.on("end", function () {
+      const inputJSON = inputChunks.join("");
+      resolve(inputJSON);
+    });
+  });
 }
