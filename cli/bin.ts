@@ -7,7 +7,6 @@ import {
   generateSvg,
   getDependencies,
 } from "../src/storymap.js";
-import assert from "node:assert";
 
 const rawArgs = process.argv.slice(2);
 
@@ -44,11 +43,10 @@ yargs(rawArgs)
           coerce: argIsString,
           requiresArg: true,
           demandOption: true,
-          default: "",
         })
         .option("format", {
           alias: "f",
-          description: "output format of the graph",
+          description: "output format of the graph as svg or Graphviz dot",
           choices: ["svg", "dot"],
           type: "string",
           default: "svg",
@@ -62,31 +60,35 @@ yargs(rawArgs)
         })
         .option("splines", {
           alias: "s",
-          description: "",
+          description: "controls how edges are drawn",
           choices: ["ortho", "polyline", "line", "spline", "curved"],
           default: "ortho",
         }),
     async ({ org, pat, query, format, direction, splines }) => {
-      assert.ok(query);
+      const awaitedQuery = await query;
 
       const connection = createConnection(org, pat);
-      const dependencies = await getDependencies({
-        connection,
-        query,
-      });
-      const dotGraph = generateDotGraph({
-        ...dependencies,
-        direction,
-        splines,
-      });
+      try {
+        const dependencies = await getDependencies({
+          connection,
+          query: awaitedQuery,
+        });
+        const dotGraph = generateDotGraph({
+          ...dependencies,
+          direction,
+          splines,
+        });
 
-      switch (format) {
-        case "svg":
-          const svgGraph = await generateSvg(dotGraph);
-          console.log(svgGraph);
-          break;
-        case "dot":
-          console.log(dotGraph);
+        switch (format) {
+          case "svg":
+            const svgGraph = await generateSvg(dotGraph);
+            console.log(svgGraph);
+            break;
+          case "dot":
+            console.log(dotGraph);
+        }
+      } catch (e: unknown) {
+        console.error(e instanceof Error ? e.message : "Error occurred");
       }
     },
   )
@@ -94,13 +96,9 @@ yargs(rawArgs)
   .help()
   .parse();
 
-function argIsString(value: string): string | Promise<string> {
-  if (process.stdin.isTTY || value === "-") {
-    return readFromStdin();
-  }
-
-  if (!value) {
-    throw new Error("wiql query is required");
+async function argIsString(value: string): Promise<string> {
+  if (!process.stdin.isTTY && value === "-") {
+    value = await readFromStdin();
   }
 
   return value;

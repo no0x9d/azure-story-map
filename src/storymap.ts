@@ -48,14 +48,6 @@ export async function getDependencies({
 
   const idsToQuery: number[] = getWorkItemIdsFromResult(queryResult);
 
-  // const fieldsToQuery = [
-  //   'System.AreaPath',
-  //   'System.WorkItemType',
-  //   'System.State',
-  //   'System.Title',
-  //   'System.Parent'
-  // ];
-
   const workItems = await workApi.getWorkItems(
     idsToQuery,
     undefined,
