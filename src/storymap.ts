@@ -125,7 +125,7 @@ export function generateDotGraph({
   const renderedEdges = edges.map(renderEdge).join("\n");
   return `digraph StoryMap {
   splines=${splines}
-  rankdir=${direction.toLowerCase() === "lb" ? "LB" : "TB"}
+  rankdir=${direction.toLowerCase() === "lr" ? "LR" : "TB"}
   node [shape=plaintext margin=0]
   
   ${renderedNodes}
