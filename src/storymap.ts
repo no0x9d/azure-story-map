@@ -1,3 +1,4 @@
+import { Graphviz } from "@hpcc-js/wasm-graphviz";
 import type { WebApi } from "azure-devops-node-api";
 import {
   QueryResultType,
@@ -5,7 +6,6 @@ import {
   type WorkItemQueryResult,
   type WorkItemRelation,
 } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces.js";
-import { Graphviz } from "@hpcc-js/wasm-graphviz";
 import assert from "node:assert";
 
 const GV = Graphviz.load();
@@ -23,6 +23,8 @@ export interface Node {
   title: string;
   parent: number;
   url: string;
+  description?: string;
+  acceptanceCriteria?: string;
 }
 
 export interface Edge {
@@ -36,20 +38,33 @@ const useRelations = [
   "System.LinkTypes.Hierarchy-Forward", // Child
 ];
 
-export async function getDependencies({
+export async function extractIdsFromQuery({
   connection,
   query,
-}: GetDependenciesOptions) {
+}: {
+  connection: WebApi;
+  query: string;
+}): Promise<number[]> {
   const workApi = await connection.getWorkItemTrackingApi();
 
   const queryResult = await workApi.queryByWiql({
     query,
   });
 
-  const idsToQuery: number[] = getWorkItemIdsFromResult(queryResult);
+  return getWorkItemIdsFromResult(queryResult);
+}
+
+export async function getDependencies({
+  connection,
+  ids,
+}: {
+  connection: WebApi;
+  ids: number[];
+}) {
+  const workApi = await connection.getWorkItemTrackingApi();
 
   const workItems = await workApi.getWorkItems(
-    idsToQuery,
+    ids,
     undefined,
     undefined,
     WorkItemExpand.Relations,
@@ -66,6 +81,8 @@ export async function getDependencies({
       title: fields["System.Title"],
       parent: fields["System.Parent"],
       url: wi.url!,
+      description: fields["System.Description"],
+      acceptanceCriteria: fields["Microsoft.VSTS.Common.AcceptanceCriteria"],
     };
   });
 

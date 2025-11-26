@@ -3,6 +3,7 @@
 import yargs from "yargs";
 import { createConnection } from "../src/azure-connection.js";
 import {
+  extractIdsFromQuery,
   generateDotGraph,
   generateSvg,
   getDependencies,
@@ -69,9 +70,13 @@ yargs(rawArgs)
 
       const connection = createConnection(org, pat);
       try {
-        const dependencies = await getDependencies({
+        const ids = await extractIdsFromQuery({
           connection,
           query: awaitedQuery,
+        });
+        const dependencies = await getDependencies({
+          connection,
+          ids,
         });
         const dotGraph = generateDotGraph({
           ...dependencies,
