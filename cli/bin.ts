@@ -49,7 +49,7 @@ yargs(rawArgs)
         .option("format", {
           alias: "f",
           description: "output format of the graph as svg or Graphviz dot",
-          choices: ["svg", "dot"],
+          choices: ["svg", "dot", "raw"],
           type: "string",
           default: "svg",
         })
@@ -101,6 +101,9 @@ yargs(rawArgs)
         });
 
         switch (format) {
+          case "raw":
+            console.log(JSON.stringify(dependencies, null, 2));
+            break;
           case "svg":
             const svgGraph = await generateSvg(dotGraph);
             console.log(svgGraph);
