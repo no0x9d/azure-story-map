@@ -50,12 +50,13 @@ export async function extractIdsFromCSV({
   const fileContent = await fs.readFile(file, "utf-8");
   const parseResult = Papa.parse<{ ID: number }>(fileContent, {
     header: true,
+    skipEmptyLines: true,
   });
 
   if (parseResult.errors.length > 0) {
     throw new Error(
       `Error parsing CSV: ${parseResult.errors
-        .map((e) => e.message)
+        .map((e) => e.message + ` (row ${e.row}, column ${e.index})`)
         .join(", ")}`,
     );
   }
