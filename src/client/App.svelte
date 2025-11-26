@@ -4,10 +4,14 @@
     Controls,
     Background,
     MiniMap,
+    MarkerType,
+    Panel,
     type Node,
-    type Edge,
-  } from "@xyflow/svelte";
+    type Edge, Position
+  } from '@xyflow/svelte';
+  import dagre from '@dagrejs/dagre';
 
+  import {exampleGraph} from './nodes.js';
   import "@xyflow/svelte/dist/style.css";
   import StoryCard from "./Story-Card.svelte";
 
@@ -15,75 +19,89 @@
     storyCard: StoryCard,
   };
 
-  let nodes = $state.raw<Node[]>([
-    {
-      id: "1",
-      type: "storyCard",
-      data: {
-        id: 12345,
-        title: "Implement user authentication",
-        state: "Active",
-        estimation: 8,
-        type: "User Story",
-        acceptanceCriteria: `
-          <ul>
-            <li>User can log in with email and password</li>
-            <li>User receives error message for invalid credentials</li>
-            <li>User can reset password via email</li>
-            <li><strong>Session expires after 24 hours</strong></li>
-            <li>User can log out from any page</li>
-          </ul>
-        `,
-      },
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: "2",
-      type: "storyCard",
-      data: {
-        id: 12346,
-        title: "Create login form with validation",
-        state: "New",
-        estimation: 5,
-        type: "Task",
-        acceptanceCriteria: `
-          <p><strong>Form Requirements:</strong></p>
-          <ol>
-            <li>Email field validates email format</li>
-            <li>Password field has minimum 8 characters</li>
-            <li>Show/hide password toggle works</li>
-            <li>Submit button disabled until form is valid</li>
-          </ol>
-        `,
-      },
-      position: { x: 300, y: 150 },
-    },
-    {
-      id: "3",
-      type: "storyCard",
-      data: {
-        id: 12347,
-        title: "Fix password reset bug",
-        state: "Resolved",
-        estimation: 3,
-        type: "Bug",
-      },
-      position: { x: 0, y: 300 },
-    },
-  ]);
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  let edges = $state.raw<Edge[]>([
-    {
-      id: "1-2",
-      source: "1",
-      target: "2",
+  let initialNodes = exampleGraph.nodes.map(n => ({
+      id: n.id.toString(10),
+      type: "storyCard",
+      data: n,
+      position: { x: 0, y: 0 },
+    }))
+
+
+  let initialEdges = exampleGraph.edges.map(e => ({
+    id: `${e.from}-${e.to}`,
+    source: e.from.toString(10),
+    target: e.to.toString(10),
+    label: e.name,
+    markerEnd: {
+      type: MarkerType.Arrow,
     },
-    {
-      id: "1-3",
-      source: "1",
-      target: "3",
-    },
-  ]);
+  }))
+
+  function getLayoutedElements(nodes: Node[], edges: Edge[], direction: 'LR' | 'TB' = 'TB') {
+    const isHorizontal = direction === 'LR';
+    dagreGraph.setGraph({ rankdir: direction });
+
+    nodes.forEach((node) => {
+      dagreGraph.setNode(node.id, { width: nodeWidth(node), height: nodeHeight(node) });
+    });
+
+    edges.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
+
+    dagre.layout(dagreGraph);
+
+    const layoutedNodes = nodes.map((node) => {
+      const nodeWithPosition = dagreGraph.node(node.id);
+      node.targetPosition = isHorizontal ? Position.Left : Position.Top;
+      node.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
+
+      // We are shifting the dagre node position (anchor=center center) to the top left
+      // so it matches the React Flow node anchor point (top left).
+      return {
+        ...node,
+        position: {
+          x: nodeWithPosition.x - nodeWidth(node) / 2,
+          y: nodeWithPosition.y - nodeHeight(node) / 2,
+        },
+      };
+    });
+
+    console.log(layoutedNodes);
+
+    return { nodes: layoutedNodes, edges };
+  }
+
+  function nodeWidth(node: Node) {
+    return node.measured?.width ?? 240;
+  }
+
+  function nodeHeight(node: Node) {
+    return node.measured?.height ?? 36;
+  }
+
+  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+    initialNodes,
+    initialEdges,
+  );
+
+  let nodes = $state.raw<Node[]>(layoutedNodes);
+  let edges = $state.raw<Edge[]>(layoutedEdges);
+
+  function onLayout(direction: 'LR' | 'TB') {
+    const layoutedElements = getLayoutedElements(nodes, edges, direction);
+
+    nodes = layoutedElements.nodes;
+    edges = layoutedElements.edges;
+  }
+
+  setTimeout(() => {
+    // Force re-layout after initial render to get correct node sizes
+    onLayout('TB');
+  }, 5);
 </script>
 
 <div style:height="100vh">
@@ -91,5 +109,9 @@
     <Controls />
     <Background />
     <MiniMap />
+    <Panel position="top-right">
+      <button onclick={() => onLayout('TB')}>vertical layout</button>
+      <button onclick={() => onLayout('LR')}>horizontal layout</button>
+    </Panel>
   </SvelteFlow>
 </div>
