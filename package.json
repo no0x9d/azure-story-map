@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.11",
+    "@types/papaparse": "^5.5.0",
     "@types/yargs": "^17.0.32",
     "prettier": "^3.3.3",
     "tsx": "^4.16.2",
@@ -28,6 +29,7 @@
     "cli-simple-table": "^1.1.1",
     "inquirer-select-pro": "^1.0.0-alpha.6",
     "jest-diff": "^29.7.0",
+    "papaparse": "^5.5.3",
     "yargs": "^17.7.2"
   }
 }

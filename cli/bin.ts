@@ -3,6 +3,7 @@
 import yargs from "yargs";
 import { createConnection } from "../src/azure-connection.js";
 import {
+  extractIdsFromCSV,
   extractIdsFromQuery,
   generateDotGraph,
   generateSvg,
@@ -43,7 +44,7 @@ yargs(rawArgs)
           type: "string",
           coerce: argIsString,
           requiresArg: true,
-          demandOption: true,
+          conflicts: "csv",
         })
         .option("format", {
           alias: "f",
@@ -64,16 +65,31 @@ yargs(rawArgs)
           description: "controls how edges are drawn",
           choices: ["ortho", "polyline", "line", "spline", "curved"],
           default: "ortho",
+        })
+        .option("csv", {
+          alias: "c",
+          description: "path to CSV file containing work item IDs",
+          type: "string",
+          requiresArg: true,
+          conflicts: "query",
         }),
-    async ({ org, pat, query, format, direction, splines }) => {
+    async ({ org, pat, query, format, direction, splines, csv }) => {
       const awaitedQuery = await query;
 
       const connection = createConnection(org, pat);
       try {
-        const ids = await extractIdsFromQuery({
-          connection,
-          query: awaitedQuery,
-        });
+        let ids: number[];
+        if (awaitedQuery) {
+          ids = await extractIdsFromQuery({
+            connection,
+            query: awaitedQuery,
+          });
+        } else if (csv) {
+          ids = await extractIdsFromCSV({ file: csv, idColumn: "ID" });
+        } else {
+          throw new Error("Either query or csv option must be provided");
+        }
+
         const dependencies = await getDependencies({
           connection,
           ids,

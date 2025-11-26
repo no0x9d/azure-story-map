@@ -7,6 +7,8 @@ import {
   type WorkItemRelation,
 } from "azure-devops-node-api/interfaces/WorkItemTrackingInterfaces.js";
 import assert from "node:assert";
+import fs from "node:fs/promises";
+import Papa from "papaparse";
 
 const GV = Graphviz.load();
 
@@ -37,6 +39,32 @@ const useRelations = [
   "System.LinkTypes.Dependency-Forward", // Successor
   "System.LinkTypes.Hierarchy-Forward", // Child
 ];
+
+export async function extractIdsFromCSV({
+  file,
+  idColumn,
+}: {
+  file: string;
+  idColumn: string;
+}): Promise<number[]> {
+  const fileContent = await fs.readFile(file, "utf-8");
+  const parseResult = Papa.parse<{ ID: number }>(fileContent, {
+    header: true,
+  });
+
+  if (parseResult.errors.length > 0) {
+    throw new Error(
+      `Error parsing CSV: ${parseResult.errors
+        .map((e) => e.message)
+        .join(", ")}`,
+    );
+  }
+  const idColumnIndex = parseResult.meta.fields!.findIndex(
+    (field) => field === idColumn,
+  );
+
+  return parseResult.data.map((row: { ID: number }) => row["ID"]);
+}
 
 export async function extractIdsFromQuery({
   connection,
