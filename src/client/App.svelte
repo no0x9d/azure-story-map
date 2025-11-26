@@ -25,6 +25,15 @@
         state: "Active",
         estimation: 8,
         type: "User Story",
+        acceptanceCriteria: `
+          <ul>
+            <li>User can log in with email and password</li>
+            <li>User receives error message for invalid credentials</li>
+            <li>User can reset password via email</li>
+            <li><strong>Session expires after 24 hours</strong></li>
+            <li>User can log out from any page</li>
+          </ul>
+        `,
       },
       position: { x: 0, y: 0 },
     },
@@ -37,6 +46,15 @@
         state: "New",
         estimation: 5,
         type: "Task",
+        acceptanceCriteria: `
+          <p><strong>Form Requirements:</strong></p>
+          <ol>
+            <li>Email field validates email format</li>
+            <li>Password field has minimum 8 characters</li>
+            <li>Show/hide password toggle works</li>
+            <li>Submit button disabled until form is valid</li>
+          </ol>
+        `,
       },
       position: { x: 300, y: 150 },
     },
