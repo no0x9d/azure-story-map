@@ -11,7 +11,6 @@
   } from '@xyflow/svelte';
   import dagre from '@dagrejs/dagre';
 
-  import {exampleGraph} from './nodes.js';
   import "@xyflow/svelte/dist/style.css";
   import StoryCard from "./Story-Card.svelte";
 
@@ -19,10 +18,12 @@
     storyCard: StoryCard,
   };
 
+  const graph = await fetch('/graph').then(res => res.json()); // TODO add types
+
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  let initialNodes = exampleGraph.nodes.map(n => ({
+  let initialNodes = graph.nodes.map(n => ({
       id: n.id.toString(10),
       type: "storyCard",
       data: n,
@@ -30,7 +31,7 @@
     }))
 
 
-  let initialEdges = exampleGraph.edges.map(e => ({
+  let initialEdges = graph.edges.map(e => ({
     id: `${e.from}-${e.to}`,
     source: e.from.toString(10),
     target: e.to.toString(10),

@@ -9,6 +9,7 @@ import {
   generateSvg,
   getDependencies,
 } from "../src/storymap.js";
+import app from "../static/index.html";
 
 const rawArgs = process.argv.slice(2);
 
@@ -111,6 +112,63 @@ yargs(rawArgs)
           case "dot":
             console.log(dotGraph);
         }
+      } catch (e: unknown) {
+        console.error(e instanceof Error ? e.message : "Error occurred");
+      }
+    },
+  )
+  .command(
+    "serve",
+    "create a story map for a query",
+    (args) =>
+      args
+        .option("query", {
+          alias: "q",
+          description: "wiql query for all stories",
+          type: "string",
+          coerce: argIsString,
+          requiresArg: true,
+          conflicts: "csv",
+        })
+        .option("csv", {
+          alias: "c",
+          description: "path to CSV file containing work item IDs",
+          type: "string",
+          requiresArg: true,
+          conflicts: "query",
+        }),
+    async ({ org, pat, query, csv }) => {
+      const awaitedQuery = await query;
+
+      const connection = createConnection(org, pat);
+      try {
+        let ids: number[];
+        if (awaitedQuery) {
+          ids = await extractIdsFromQuery({
+            connection,
+            query: awaitedQuery,
+          });
+        } else if (csv) {
+          ids = await extractIdsFromCSV({ file: csv, idColumn: "ID" });
+        } else {
+          throw new Error("Either query or csv option must be provided");
+        }
+
+        const dependencies = await getDependencies({
+          connection,
+          ids,
+        });
+
+        const server = Bun.serve({
+          port: 8080,
+          routes: {
+            "/": app,
+          },
+          fetch(req: any) {
+            return Response.json(dependencies, { status: 200 });
+          },
+        });
+        console.log(`Server running at ${server.url}`);
       } catch (e: unknown) {
         console.error(e instanceof Error ? e.message : "Error occurred");
       }
