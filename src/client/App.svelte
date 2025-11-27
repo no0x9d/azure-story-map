@@ -18,7 +18,9 @@
     storyCard: StoryCard,
   };
 
-  const graph = await fetch('/graph').then(res => res.json()); // TODO add types
+  let layout = $state({ isHorizontal: false });
+  setLayoutContext(layout)
+
   const graph = await fetch('http://localhost:8080/graph').then(res => res.json()); // TODO add types
 
   const dagreGraph = new dagre.graphlib.Graph();

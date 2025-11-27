@@ -16,22 +16,25 @@
 
   function getStateColor(state: string): string {
     const stateColors: Record<string, string> = {
-      New: "#6b7280",
-      Active: "#3b82f6",
-      Resolved: "#8b5cf6",
-      Closed: "#10b981",
-      Removed: "#ef4444",
+      New: "rgb(178, 178, 178)",
+      Ready: "rgb(168, 206, 75)",
+      Active: "rgb(0, 122, 204)",
+      Refinement: "rgb(215, 229, 135)",
+      Resolved: "rgb(255, 157, 0)",
+      Closed: "rgb(51, 153, 51)",
+      "Product Increment": "rgb(0, 122, 204)",
+      "Confirmed": "rgb(215, 229, 135)",
     };
     return stateColors[state] || "#6b7280";
   }
 
   function getTypeColor(type?: string): string {
     const typeColors: Record<string, string> = {
-      "User Story": "#3b82f6",
-      Bug: "#ef4444",
-      Task: "#10b981",
-      Epic: "#8b5cf6",
-      Feature: "#f59e0b",
+      "User Story": "rgb(0, 152, 199)",
+      Bug: "rgb(204, 41, 61)",
+      Task: "rgb(164, 136, 10)",
+      Epic: "rgb(224, 108, 0)",
+      Feature: "rgb(119, 59, 147)",
     };
     return type ? typeColors[type] || "#6b7280" : "#6b7280";
   }
