@@ -1,18 +1,20 @@
 <script lang="ts">
-  import {
-    SvelteFlow,
-    Controls,
-    Background,
-    MiniMap,
-    MarkerType,
-    Panel,
-    type Node,
-    type Edge, Position
-  } from '@xyflow/svelte';
   import dagre from '@dagrejs/dagre';
+  import {
+    Background,
+    Controls,
+    type Edge,
+    MarkerType,
+    MiniMap,
+    type Node,
+    Panel,
+    Position,
+    SvelteFlow
+  } from '@xyflow/svelte';
+  import { setLayoutContext } from './state.svelte.js';
+  import StoryCard from './Story-Card.svelte';
 
-  import "@xyflow/svelte/dist/style.css";
-  import StoryCard from "./Story-Card.svelte";
+  import '@xyflow/svelte/dist/style.css';
 
   const nodeTypes = {
     storyCard: StoryCard,
@@ -96,6 +98,7 @@
   let edges = $state.raw<Edge[]>(layoutedEdges);
 
   function onLayout(direction: 'LR' | 'TB') {
+    layout.isHorizontal = direction === 'LR';
     const layoutedElements = getLayoutedElements(nodes, edges, direction);
 
     nodes = layoutedElements.nodes;

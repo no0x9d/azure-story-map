@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Handle, Position, type NodeProps } from "@xyflow/svelte";
+  import { getLayoutContext } from './state.svelte.js';
 
   interface StoryData {
     id: number;
@@ -13,6 +14,7 @@
 
   let { data, selected }: NodeProps<StoryData> = $props();
   let isExpanded = $state(false);
+  let layout = getLayoutContext();
 
   function getStateColor(state: string): string {
     const stateColors: Record<string, string> = {
@@ -50,7 +52,7 @@
   class:selected
   style="--type-color: {getTypeColor(data.type)}"
 >
-  <Handle type="target" position={Position.Top} />
+  <Handle type="target" position={layout.isHorizontal ? Position.Left : Position.Top} />
 
   <div class="story-header">
     <span class="story-id">#{data.id}</span>
@@ -94,7 +96,7 @@
     {/if}
   {/if}
 
-  <Handle type="source" position={Position.Bottom} />
+  <Handle type="source" position={layout.isHorizontal ? Position.Right : Position.Bottom} />
 </div>
 
 <style>
