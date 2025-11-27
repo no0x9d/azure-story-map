@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 import yargs from "yargs";
 import { createConnection } from "../src/azure-connection.js";
@@ -165,7 +165,14 @@ yargs(rawArgs)
             "/": app,
           },
           fetch(req: any) {
-            return Response.json(dependencies, { status: 200 });
+            return Response.json(dependencies, {
+              status: 200,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods":
+                  "GET, POST, PUT, DELETE, OPTIONS",
+              },
+            });
           },
         });
         console.log(`Server running at ${server.url}`);

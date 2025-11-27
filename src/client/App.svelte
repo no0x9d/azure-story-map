@@ -19,6 +19,7 @@
   };
 
   const graph = await fetch('/graph').then(res => res.json()); // TODO add types
+  const graph = await fetch('http://localhost:8080/graph').then(res => res.json()); // TODO add types
 
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
