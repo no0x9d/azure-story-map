@@ -73,7 +73,7 @@
   </div>
 
   {#if data.acceptanceCriteria}
-    <button class="expand-button" onclick={toggleAcceptanceCriteriaExpand} type="button">
+    <button class="expand-button" class:expanded={isExpanded} onclick={toggleAcceptanceCriteriaExpand} type="button">
       <svg
         class="expand-icon"
         class:rotated={isExpanded}
@@ -102,8 +102,8 @@
 <style>
   .story-card {
     background: white;
-    border: 2px solid var(--type-color, #e5e7eb);
-    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    border-left: 6px solid var(--type-color, #e5e7eb);
     padding: 12px;
     min-width: 240px;
     max-width: 320px;
@@ -191,29 +191,33 @@
     font-weight: 500;
     color: #374151;
     transition: all 0.2s ease;
+
+    &.expanded {
+      border-bottom: none;
+      border-radius:6px 6px 0 0 ;
+    }
   }
 
   .expand-button:hover {
     background: #f3f4f6;
-    border-color: #d1d5db;
   }
 
   .expand-icon {
     width: 16px;
     height: 16px;
     transition: transform 0.2s ease;
-  }
 
-  .expand-icon.rotated {
-    transform: rotate(180deg);
+    &.rotated {
+        transform: rotate(180deg);
+    }
   }
 
   .acceptance-criteria {
-    margin-top: 8px;
-    padding: 10px;
+    padding: 0 10px 10px;
     background: #f9fafb;
     border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    border-top: none;
+    border-radius: 0 0 6px 6px ;
     font-size: 12px;
     line-height: 1.5;
     color: #374151;
@@ -224,7 +228,7 @@
   .acceptance-criteria :global(ul),
   .acceptance-criteria :global(ol) {
     margin: 8px 0;
-    padding-left: 20px;
+    padding-left: 10px;
   }
 
   .acceptance-criteria :global(li) {
