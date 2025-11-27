@@ -55,7 +55,7 @@
   <Handle type="target" position={layout.isHorizontal ? Position.Left : Position.Top} />
 
   <div class="story-header">
-    <span class="story-id">#{data.id}</span>
+    <a href={data.webUrl} target="_blank" class="story-id">#{data.id}</a>
     {#if data.estimation}
       <span class="story-estimation">{data.estimation} SP</span>
     {/if}

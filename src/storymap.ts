@@ -25,6 +25,7 @@ export interface Node {
   title: string;
   parent: number;
   url: string;
+  webUrl: string;
   description?: string;
   acceptanceCriteria?: string;
 }
@@ -110,6 +111,7 @@ export async function getDependencies({
       title: fields["System.Title"],
       parent: fields["System.Parent"],
       url: wi.url!,
+      webUrl: wi.url!.replace("/_apis/wit/workItems/", "/_workitems/edit/"),
       description: fields["System.Description"],
       acceptanceCriteria: fields["Microsoft.VSTS.Common.AcceptanceCriteria"],
     };
