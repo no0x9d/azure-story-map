@@ -23,6 +23,8 @@ export interface Node {
 	webUrl: string;
 	description?: string;
 	acceptanceCriteria?: string;
+	estimationStoryPoints?: number;
+	estimationEffort?: number;
 }
 
 export interface Edge {
@@ -70,7 +72,9 @@ export async function getDependencies({ connection, ids }: { connection: WebApi;
 			url: wi.url!,
 			webUrl: wi.url!.replace('/_apis/wit/workItems/', '/_workitems/edit/'),
 			description: fields['System.Description'],
-			acceptanceCriteria: fields['Microsoft.VSTS.Common.AcceptanceCriteria']
+			acceptanceCriteria: fields['Microsoft.VSTS.Common.AcceptanceCriteria'],
+			estimationStoryPoints: fields['Microsoft.VSTS.Scheduling.StoryPoints'],
+			estimationEffort: fields['Microsoft.VSTS.Scheduling.Effort']
 		};
 	});
 

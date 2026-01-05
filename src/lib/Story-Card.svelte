@@ -6,7 +6,8 @@
     id: number;
     title: string;
     state: string;
-    estimation?: number;
+    estimationStoryPoints?: number;
+    estimationEffort?: number;
     type?: string;
     description?: string;
     acceptanceCriteria?: string;
@@ -14,7 +15,8 @@
   }
 
   let { data, selected }: {data: StoryData, selected: boolean} = $props();
-  let isExpanded = $state(false);
+  let isAcceptanceCriteriaExpanded = $state(false);
+  let isDescriptionExpanded = $state(false);
   let layout = getLayoutContext();
 
   function getStateColor(state: string): string {
@@ -44,7 +46,12 @@
 
   function toggleAcceptanceCriteriaExpand(event: Event) {
     event.stopPropagation();
-    isExpanded = !isExpanded;
+    isAcceptanceCriteriaExpanded = !isAcceptanceCriteriaExpanded;
+  }
+
+  function toggleDescriptionExpand(event: Event) {
+    event.stopPropagation();
+    isDescriptionExpanded = !isDescriptionExpanded;
   }
 </script>
 
@@ -57,8 +64,11 @@
 
   <div class="story-header">
     <a href={data.webUrl} target="_blank" class="story-id">#{data.id}</a>
-    {#if data.estimation}
-      <span class="story-estimation">{data.estimation} SP</span>
+    {#if data.estimationStoryPoints}
+      <span class="story-estimation">{data.estimationStoryPoints} SP</span>
+    {/if}
+    {#if data.estimationEffort}
+      <span class="story-estimation">{data.estimationEffort}</span>
     {/if}
   </div>
 
@@ -73,11 +83,34 @@
     {/if}
   </div>
 
-  {#if data.acceptanceCriteria}
-    <button class="expand-button" class:expanded={isExpanded} onclick={toggleAcceptanceCriteriaExpand} type="button">
+  {#if data.description}
+    <button class="expand-button" class:expanded={isDescriptionExpanded} onclick={toggleDescriptionExpand} type="button">
       <svg
         class="expand-icon"
-        class:rotated={isExpanded}
+        class:rotated={isDescriptionExpanded}
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <span>Description</span>
+    </button>
+
+    {#if isDescriptionExpanded}
+      <div class="acceptance-criteria">
+        {@html data.description}
+      </div>
+    {/if}
+  {/if}
+  {#if data.acceptanceCriteria}
+    <button class="expand-button" class:expanded={isAcceptanceCriteriaExpanded} onclick={toggleAcceptanceCriteriaExpand} type="button">
+      <svg
+        class="expand-icon"
+        class:rotated={isAcceptanceCriteriaExpanded}
         viewBox="0 0 20 20"
         fill="currentColor"
       >
@@ -90,7 +123,7 @@
       <span>Acceptance Criteria</span>
     </button>
 
-    {#if isExpanded}
+    {#if isAcceptanceCriteriaExpanded}
       <div class="acceptance-criteria">
         {@html data.acceptanceCriteria}
       </div>
