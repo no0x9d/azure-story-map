@@ -8,8 +8,8 @@ To install via local git repo:
 
 ```bash
 git clone <URL>
-npx tsc
-npm link
+npm install
+npm run dev
 ```
 
 To install globally via npm
