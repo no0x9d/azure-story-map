@@ -20,12 +20,8 @@ npm install -g no0x9d/azure-story-map
 ```
 
 ### configuration
-To make it easier to use when you configure the base values via environment variables
+For the first run you need to configure the access to your azure devops instance. You need to do this via the 
+'Settings' dialog accessible from the top left.
 
-example: For the project in `https://dev.azure.com/My-Org/My-Project` you can configure the 
-following environment variables
-
-```bash
-AZURE_PERSONAL_ACCESS_TOKEN=1234567890abcdefghijklmnop
-AZURE_BASE_URL=https://dev.azure.com/My-Org
-```
+example: For the project in `https://dev.azure.com/My-Org/My-Project` you can configure the Base URL as `https://dev.azure.com/My-Org`
+You need to create a personal access token (PAT) with at least 'Work Items (read)' scope.
