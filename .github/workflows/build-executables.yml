@@ -34,12 +34,12 @@ jobs:
         run: bun install
 
       - name: Build application
-        run: APP_NAME=${{ matrix.artifact-name }} APP_TARGET=${{ matrix.target }} bun run build
+        run: APP_NAME=${{ matrix.artifact-name }} APP_TARGET=${{ matrix.target }} bunx --bun vite build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: executables ${{ matrix.matrix.target }}
+          name: executable-${{ matrix.target }}
           path: ./dist/${{ matrix.artifact-name }}
           retention-days: 30
   release:
