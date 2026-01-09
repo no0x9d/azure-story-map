@@ -15,6 +15,7 @@
   import StoryCard from '$lib/Story-Card.svelte';
   import ConfigureIssuesDialog from '$lib/ConfigureIssuesDialog.svelte';
   import SettingsDialog from '$lib/SettingsDialog.svelte';
+  import EdgeTypeFilter from '$lib/EdgeTypeFilter.svelte';
   import type { PageProps } from './$types';
 
   import '@xyflow/svelte/dist/style.css';
@@ -33,6 +34,24 @@
   let dialogOpen = $state(false);
   let settingsOpen = $state(false);
 
+  // Edge type filtering
+  let allEdgeTypes = $derived.by(() => {
+    const types = new Set<string>();
+    graph.edges.forEach(e => {
+      if (e.name) types.add(e.name);
+    });
+    return Array.from(types).sort();
+  });
+
+  let visibleEdgeTypes = $state(new Set<string>());
+
+  // Initialize visible edge types when all edge types change
+  $effect(() => {
+    if (allEdgeTypes.length > 0 && visibleEdgeTypes.size === 0) {
+      visibleEdgeTypes = new Set(allEdgeTypes);
+    }
+  });
+
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
@@ -44,15 +63,17 @@
   })));
 
 
-  let initialEdges = $derived.by(() => graph.edges.map(e => ({
-    id: `${e.from}-${e.to}`,
-    source: e.from.toString(10),
-    target: e.to.toString(10),
-    label: e.name,
-    markerEnd: {
-      type: MarkerType.Arrow
-    }
-  })));
+  let initialEdges = $derived.by(() => graph.edges
+    .filter(e => visibleEdgeTypes.has(e.name))
+    .map(e => ({
+      id: `${e.from}-${e.to}`,
+      source: e.from.toString(10),
+      target: e.to.toString(10),
+      label: e.name,
+      markerEnd: {
+        type: MarkerType.Arrow
+      }
+    })));
 
   function getLayoutedElements(nodes: Node[], edges: Edge[], direction: 'LR' | 'TB' = 'TB') {
     const isHorizontal = direction === 'LR';
@@ -100,6 +121,16 @@
   let nodes = $state.raw<Node[]>([]);
   let edges = $state.raw<Edge[]>([]);
 
+  function toggleEdgeType(edgeType: string) {
+    const newVisible = new Set(visibleEdgeTypes);
+    if (newVisible.has(edgeType)) {
+      newVisible.delete(edgeType);
+    } else {
+      newVisible.add(edgeType);
+    }
+    visibleEdgeTypes = newVisible;
+  }
+
   $effect(() => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       initialNodes,
@@ -131,10 +162,16 @@
     <Panel position="top-left">
       <ConfigureIssuesDialog bind:open={dialogOpen} />
       <SettingsDialog bind:open={settingsOpen} />
+
     </Panel>
     <Panel position="top-right">
       <button class="rounded outline p-1 bg-white" onclick={() => onLayout('TB')}>vertical layout</button>
       <button class="rounded outline p-1 bg-white" onclick={() => onLayout('LR')}>horizontal layout</button>
+      <EdgeTypeFilter
+        edgeTypes={allEdgeTypes}
+        {visibleEdgeTypes}
+        ontoggle={toggleEdgeType}
+      />
     </Panel>
   </SvelteFlow>
 </div>
