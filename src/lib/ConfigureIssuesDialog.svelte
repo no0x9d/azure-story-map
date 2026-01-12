@@ -10,11 +10,21 @@
     open?: boolean;
   } = $props();
 
-  let activeTab = $state<'query' | 'ids'>('query');
+  type HistoryEntry = {
+    type: 'query' | 'ids';
+    content: string;
+    timestamp: number;
+  };
+
+  const HISTORY_KEY = 'issue-config-history';
+  const MAX_HISTORY = 20;
+
+  let activeTab = $state<'query' | 'ids' | 'history'>('query');
   let wiqlQuery = $state('');
   let idsList = $state('');
   let csvFileInput = $state<HTMLInputElement | null>(null);
   let csvParseError = $state('');
+  let history = $state<HistoryEntry[]>([]);
 
   // Initialize from URL parameters
   $effect.pre(() => {
@@ -29,6 +39,20 @@
     if (wiqlParam) {
       wiqlQuery = wiqlParam;
       activeTab = 'query';
+    }
+  });
+
+  // Load history from localStorage
+  $effect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(HISTORY_KEY);
+      if (stored) {
+        try {
+          history = JSON.parse(stored);
+        } catch (e) {
+          history = [];
+        }
+      }
     }
   });
 
@@ -55,7 +79,50 @@
     goto(newUrl, { invalidateAll: true });
   }
 
+  function saveToHistory(type: 'query' | 'ids', content: string) {
+    // Remove duplicate if exists
+    const filtered = history.filter(
+      entry => !(entry.type === type && entry.content === content)
+    );
+
+    // Add new entry at the beginning
+    const newEntry: HistoryEntry = {
+      type,
+      content,
+      timestamp: Date.now()
+    };
+
+    const updated = [newEntry, ...filtered].slice(0, MAX_HISTORY);
+    history = updated;
+
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    }
+  }
+
+  function applyHistoryEntry(entry: HistoryEntry) {
+    if (entry.type === 'query') {
+      wiqlQuery = entry.content;
+      activeTab = 'query';
+    } else {
+      idsList = entry.content;
+      activeTab = 'ids';
+    }
+  }
+
   function handleConfirm() {
+    // Save to history before updating URL
+    if (activeTab === 'query' && wiqlQuery.trim()) {
+      saveToHistory('query', wiqlQuery.trim());
+    } else if (activeTab === 'ids' && idsList.trim()) {
+      const idsArray = idsList
+        .split('\n')
+        .map(id => id.trim())
+        .filter(id => id.length > 0);
+      saveToHistory('ids', idsArray.join('\n'));
+    }
+
     updateUrlParams();
     open = false;
   }
@@ -105,6 +172,9 @@
           <Tabs.Trigger value="ids" class="px-4 py-2 border-b-2 data-[state=active]:border-blue-500">
             IDs
           </Tabs.Trigger>
+          <Tabs.Trigger value="history" class="px-4 py-2 border-b-2 data-[state=active]:border-blue-500">
+            History
+          </Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="query" class="mt-4">
@@ -151,6 +221,53 @@
             rows="10"
           ></textarea>
           <p class="text-xs text-gray-500 mt-2">Enter one issue ID per line</p>
+        </Tabs.Content>
+
+        <Tabs.Content value="history" class="mt-4">
+          <div class="space-y-2">
+            <h3 class="text-sm font-medium mb-3">Recent Configurations</h3>
+            {#if history.length === 0}
+              <p class="text-sm text-gray-500 text-center py-8">No history yet. Confirmed configurations will appear here.</p>
+            {:else}
+              <div class="max-h-96 overflow-y-auto space-y-2">
+                {#each history as entry (entry.timestamp)}
+                  <button
+                    onclick={() => applyHistoryEntry(entry)}
+                    class="w-full text-left p-3 border rounded hover:bg-gray-50 transition-colors"
+                    title={entry.type === 'query'
+                      ? `Query: ${entry.content}`
+                      : `IDs:\n${entry.content}`}
+                  >
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="inline-block px-2 py-0.5 text-xs font-medium rounded {entry.type === 'query' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                            {entry.type === 'query' ? 'Query' : 'IDs'}
+                          </span>
+                          <span class="text-xs text-gray-500">
+                            {new Date(entry.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <div class="text-sm font-mono text-gray-700 truncate">
+                          {entry.type === 'query'
+                            ? entry.content
+                            : entry.content.split('\n').slice(0, 3).join(', ') + (entry.content.split('\n').length > 3 ? '...' : '')}
+                        </div>
+                        {#if entry.type === 'ids'}
+                          <div class="text-xs text-gray-500 mt-1">
+                            {entry.content.split('\n').length} ID(s)
+                          </div>
+                        {/if}
+                      </div>
+                      <div class="shrink-0">
+                        <span class="text-xs text-blue-600">Apply →</span>
+                      </div>
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            {/if}
+          </div>
         </Tabs.Content>
       </Tabs.Root>
 
