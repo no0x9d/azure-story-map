@@ -124,7 +124,7 @@
     </button>
 
     {#if isAcceptanceCriteriaExpanded}
-      <div class="acceptance-criteria">
+      <div class="acceptance-criteria" onscroll={(event) => event.stopPropagation()}>
         {@html data.acceptanceCriteria}
       </div>
     {/if}
