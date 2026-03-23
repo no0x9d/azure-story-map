@@ -15,7 +15,7 @@
   import StoryCard from '$lib/Story-Card.svelte';
   import ConfigureIssuesDialog from '$lib/ConfigureIssuesDialog.svelte';
   import SettingsDialog from '$lib/SettingsDialog.svelte';
-  import EdgeTypeFilter from '$lib/EdgeTypeFilter.svelte';
+  import EdgeTypeFilter from '$lib/ElementTypeFilter.svelte';
   import type { PageProps } from './$types';
 
   import '@xyflow/svelte/dist/style.css';
@@ -37,7 +37,7 @@
   // Edge type filtering
   let allEdgeTypes = $derived.by(() => {
     const types = new Set<string>();
-    graph.edges.forEach(e => {
+    graph.edges.forEach((e) => {
       if (e.name) types.add(e.name);
     });
     return Array.from(types).sort();
@@ -52,28 +52,51 @@
     }
   });
 
+  // Issue type filtering
+  let allIssueTypes = $derived.by(() => {
+    const types = new Set<string>();
+    graph.nodes.forEach((n) => {
+      if (n.type) types.add(n.type);
+    });
+    return Array.from(types).sort();
+  });
+
+  let visibleIssueTypes = $state(new Set<string>());
+
+  // Initialize visible issue types when all issue types change
+  $effect(() => {
+    if (allIssueTypes.length > 0 && visibleIssueTypes.size === 0) {
+      visibleIssueTypes = new Set(allIssueTypes);
+    }
+  });
+
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-  let initialNodes = $derived.by(() => graph.nodes.map(n => ({
-    id: n.id.toString(10),
-    type: 'storyCard',
-    data: n,
-    position: { x: 0, y: 0 }
-  })));
+  let initialNodes = $derived.by(() =>
+    graph.nodes
+      .filter((n) => visibleIssueTypes.has(n.type))
+      .map((n) => ({
+        id: n.id.toString(10),
+        type: 'storyCard',
+        data: n,
+        position: { x: 0, y: 0 }
+      }))
+  );
 
-
-  let initialEdges = $derived.by(() => graph.edges
-    .filter(e => visibleEdgeTypes.has(e.name))
-    .map(e => ({
-      id: `${e.from}-${e.to}`,
-      source: e.from.toString(10),
-      target: e.to.toString(10),
-      label: e.name,
-      markerEnd: {
-        type: MarkerType.Arrow
-      }
-    })));
+  let initialEdges = $derived.by(() =>
+    graph.edges
+      .filter((e) => visibleEdgeTypes.has(e.name))
+      .map((e) => ({
+        id: `${e.from}-${e.to}`,
+        source: e.from.toString(10),
+        target: e.to.toString(10),
+        label: e.name,
+        markerEnd: {
+          type: MarkerType.Arrow
+        }
+      }))
+  );
 
   function getLayoutedElements(nodes: Node[], edges: Edge[], direction: 'LR' | 'TB' = 'TB') {
     const isHorizontal = direction === 'LR';
@@ -131,6 +154,16 @@
     visibleEdgeTypes = newVisible;
   }
 
+  function toggleIssueType(issueType: string) {
+    const newVisible = new Set(visibleIssueTypes);
+    if (newVisible.has(issueType)) {
+      newVisible.delete(issueType);
+    } else {
+      newVisible.add(issueType);
+    }
+    visibleIssueTypes = newVisible;
+  }
+
   $effect(() => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       initialNodes,
@@ -162,15 +195,21 @@
     <Panel position="top-left">
       <ConfigureIssuesDialog bind:open={dialogOpen} />
       <SettingsDialog bind:open={settingsOpen} />
-
     </Panel>
     <Panel position="top-right">
-      <button class="rounded outline p-1 bg-white" onclick={() => onLayout('TB')}>vertical layout</button>
-      <button class="rounded outline p-1 bg-white" onclick={() => onLayout('LR')}>horizontal layout</button>
+      <button class="rounded outline p-1 bg-white" onclick={() => onLayout('TB')}
+        >vertical layout</button
+      >
+      <button class="rounded outline p-1 bg-white" onclick={() => onLayout('LR')}
+        >horizontal layout</button
+      >
       <EdgeTypeFilter
         edgeTypes={allEdgeTypes}
         {visibleEdgeTypes}
+        issueTypes={allIssueTypes}
+        {visibleIssueTypes}
         ontoggle={toggleEdgeType}
+        ontoggleIssueType={toggleIssueType}
       />
     </Panel>
   </SvelteFlow>
