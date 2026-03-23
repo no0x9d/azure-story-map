@@ -188,7 +188,7 @@
 </script>
 
 <div style:height="100vh">
-  <SvelteFlow bind:nodes bind:edges {nodeTypes} fitView>
+  <SvelteFlow bind:nodes bind:edges {nodeTypes} minZoom={0.1} fitView>
     <Controls />
     <Background />
     <MiniMap />
