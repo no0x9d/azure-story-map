@@ -16,13 +16,13 @@
 
 <Dialog.Root bind:open>
   <Dialog.Trigger class="rounded outline p-1 bg-white">
-    Filter Edges
+    Configure Edges
   </Dialog.Trigger>
   <Dialog.Portal>
     <Dialog.Overlay />
     <Dialog.Content
       class="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] bg-white rounded shadow-lg p-6 max-w-md w-full">
-      <Dialog.Title>Filter Edge Types</Dialog.Title>
+      <Dialog.Title>Show Edge Types</Dialog.Title>
 
       <div class="w-full mt-4 flex flex-col gap-2">
         {#if edgeTypes.length === 0}
