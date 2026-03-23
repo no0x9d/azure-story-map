@@ -16,9 +16,10 @@
   import ConfigureIssuesDialog from '$lib/ConfigureIssuesDialog.svelte';
   import SettingsDialog from '$lib/SettingsDialog.svelte';
   import EdgeTypeFilter from '$lib/ElementTypeFilter.svelte';
+  import SaveLayoutDialog, { type SavedState } from '$lib/SaveLayoutDialog.svelte';
   import type { PageProps } from './$types';
-
   import { untrack } from 'svelte';
+
   import '@xyflow/svelte/dist/style.css';
 
   let { data }: PageProps = $props();
@@ -34,6 +35,7 @@
   // Dialog state
   let dialogOpen = $state(false);
   let settingsOpen = $state(false);
+  let saveLayoutOpen = $state(false);
 
   // Edge type filtering
   let allEdgeTypes = $derived.by(() => {
@@ -209,6 +211,36 @@
     }
   });
 
+  function handleImportState(state: SavedState) {
+    // Apply layout direction
+    layout.isHorizontal = state.layout.isHorizontal;
+
+    // Apply filter selections (non-empty sets prevent the lazy-init effects from overriding)
+    if (state.visibleEdgeTypes.length > 0) {
+      visibleEdgeTypes = new Set(state.visibleEdgeTypes);
+    }
+    if (state.visibleIssueTypes.length > 0) {
+      visibleIssueTypes = new Set(state.visibleIssueTypes);
+    }
+
+    // Build the position snapshot from the saved state.
+    const map = new Map<string, { x: number; y: number }>();
+    for (const [id, pos] of Object.entries(state.positions)) {
+      map.set(id, pos);
+    }
+    positionSnapshot = map;
+
+    // Apply saved positions to the current nodes immediately.
+    // The layout $effect won't do this because all node IDs already exist in the
+    // snapshot, so it falls into the data-only merge branch and skips repositioning.
+
+    nodes = untrack(() => nodes).map((n) => ({
+      ...n,
+      position: map.get(n.id) ?? n.position
+    }));
+    edges = untrack(() => edges);
+  }
+
   function updatePositionSnapshot(updatedNodes: Node[]) {
     const map = new Map<string, { x: number; y: number }>();
     for (const n of updatedNodes) {
@@ -246,6 +278,14 @@
     <Panel position="top-left">
       <ConfigureIssuesDialog bind:open={dialogOpen} />
       <SettingsDialog bind:open={settingsOpen} />
+      <SaveLayoutDialog
+        bind:open={saveLayoutOpen}
+        {nodes}
+        {layout}
+        {visibleEdgeTypes}
+        {visibleIssueTypes}
+        onimport={handleImportState}
+      />
     </Panel>
     <Panel position="top-right">
       <button class="rounded outline p-1 bg-white" onclick={() => onLayout('TB')}
