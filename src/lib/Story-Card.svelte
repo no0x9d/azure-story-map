@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Handle, Position } from '@xyflow/svelte';
   import { getLayoutContext } from './state.svelte';
+  import { getStateColor, getTypeColor } from './colors';
 
   interface StoryData {
     id: number;
@@ -18,31 +19,6 @@
   let isAcceptanceCriteriaExpanded = $state(false);
   let isDescriptionExpanded = $state(false);
   let layout = getLayoutContext();
-
-  function getStateColor(state: string): string {
-    const stateColors: Record<string, string> = {
-      New: 'rgb(178, 178, 178)',
-      Ready: 'rgb(168, 206, 75)',
-      Active: 'rgb(0, 122, 204)',
-      Refinement: 'rgb(215, 229, 135)',
-      Resolved: 'rgb(255, 157, 0)',
-      Closed: 'rgb(51, 153, 51)',
-      'Product Increment': 'rgb(0, 122, 204)',
-      Confirmed: 'rgb(215, 229, 135)'
-    };
-    return stateColors[state] || '#6b7280';
-  }
-
-  function getTypeColor(type?: string): string {
-    const typeColors: Record<string, string> = {
-      'User Story': 'rgb(0, 152, 199)',
-      Bug: 'rgb(204, 41, 61)',
-      Task: 'rgb(164, 136, 10)',
-      Epic: 'rgb(224, 108, 0)',
-      Feature: 'rgb(119, 59, 147)'
-    };
-    return type ? typeColors[type] || '#6b7280' : '#6b7280';
-  }
 
   function toggleAcceptanceCriteriaExpand(event: Event) {
     event.stopPropagation();
