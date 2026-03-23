@@ -18,6 +18,7 @@
   import EdgeTypeFilter from '$lib/ElementTypeFilter.svelte';
   import type { PageProps } from './$types';
 
+  import { untrack } from 'svelte';
   import '@xyflow/svelte/dist/style.css';
 
   let { data }: PageProps = $props();
@@ -144,6 +145,14 @@
   let nodes = $state.raw<Node[]>([]);
   let edges = $state.raw<Edge[]>([]);
 
+  // Snapshot of node positions (id -> position).
+  // Updated via onNodeDragStop so drag-and-drop positions survive data refreshes.
+  let positionSnapshot = new Map<string, { x: number; y: number }>();
+
+  function onNodeDragStop() {
+    updatePositionSnapshot(nodes);
+  }
+
   function toggleEdgeType(edgeType: string) {
     const newVisible = new Set(visibleEdgeTypes);
     if (newVisible.has(edgeType)) {
@@ -165,30 +174,72 @@
   }
 
   $effect(() => {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      initialNodes,
-      initialEdges
-    );
-    nodes = layoutedNodes;
-    edges = layoutedEdges;
+    // Determine whether any node lacks a saved position (truly new nodes).
+    const hasNewNodes = initialNodes.some((n) => !positionSnapshot.has(n.id));
 
-    setTimeout(() => {
-      // Force re-layout after initial render to get correct node sizes
-      onLayout('TB');
-    }, 5);
+    if (hasNewNodes || untrack(() => nodes.length === 0)) {
+      // Full Dagre layout: preserve existing positions where available, lay out new nodes.
+      const nodesWithPositions = initialNodes.map((n) => ({
+        ...n,
+        position: positionSnapshot.get(n.id) ?? n.position
+      })) as unknown as Node[];
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+        nodesWithPositions,
+        initialEdges
+      );
+      nodes = layoutedNodes;
+      edges = layoutedEdges;
+
+      if (hasNewNodes) {
+        setTimeout(() => {
+          // Force re-layout after initial render to get correct node sizes
+          onLayout(layout.isHorizontal ? 'LR' : 'TB');
+        }, 5);
+      }
+    } else {
+      // Only data changed for existing nodes (e.g. state/title updates from a re-query).
+      // Merge updated data into the existing positioned nodes without touching positions.
+      const dataById = new Map(initialNodes.map((n) => [n.id, n.data]));
+      nodes = untrack(() =>
+        nodes
+          .filter((n) => dataById.has(n.id))
+          .map((n) => ({ ...n, data: dataById.get(n.id) ?? n.data }))
+      ) as unknown as Node[];
+      edges = initialEdges;
+    }
   });
+
+  function updatePositionSnapshot(updatedNodes: Node[]) {
+    const map = new Map<string, { x: number; y: number }>();
+    for (const n of updatedNodes) {
+      map.set(n.id, { ...n.position });
+    }
+    positionSnapshot = map;
+  }
 
   function onLayout(direction: 'LR' | 'TB') {
     layout.isHorizontal = direction === 'LR';
-    const layoutedElements = getLayoutedElements(nodes, edges, direction);
+    const layoutedElements = getLayoutedElements(
+      untrack(() => nodes),
+      untrack(() => edges),
+      direction
+    );
 
     nodes = layoutedElements.nodes;
     edges = layoutedElements.edges;
+    updatePositionSnapshot(layoutedElements.nodes);
   }
 </script>
 
 <div style:height="100vh">
-  <SvelteFlow bind:nodes bind:edges {nodeTypes} minZoom={0.1} fitView>
+  <SvelteFlow
+    bind:nodes
+    bind:edges
+    {nodeTypes}
+    minZoom={0.1}
+    fitView
+    onnodedragstop={onNodeDragStop}
+  >
     <Controls />
     <Background />
     <MiniMap />
