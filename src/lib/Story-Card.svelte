@@ -78,7 +78,7 @@
     </button>
 
     {#if isDescriptionExpanded}
-      <div class="expandable-content">
+      <div class="expandable-content" onscroll={(event) => event.stopPropagation()}>
         {@html data.description}
       </div>
     {/if}
