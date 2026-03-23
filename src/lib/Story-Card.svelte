@@ -78,7 +78,7 @@
     </button>
 
     {#if isDescriptionExpanded}
-      <div class="acceptance-criteria">
+      <div class="expandable-content">
         {@html data.description}
       </div>
     {/if}
@@ -106,7 +106,7 @@
     </button>
 
     {#if isAcceptanceCriteriaExpanded}
-      <div class="acceptance-criteria" onscroll={(event) => event.stopPropagation()}>
+      <div class="expandable-content" onscroll={(event) => event.stopPropagation()}>
         {@html data.acceptanceCriteria}
       </div>
     {/if}
@@ -230,7 +230,7 @@
     }
   }
 
-  .acceptance-criteria {
+  .expandable-content {
     padding: 0 10px 10px;
     background: #f9fafb;
     border: 1px solid #e5e7eb;
@@ -243,31 +243,31 @@
     overflow-y: auto;
   }
 
-  .acceptance-criteria :global(ul),
-  .acceptance-criteria :global(ol) {
+  .expandable-content :global(ul),
+  .expandable-content :global(ol) {
     margin: 8px 0;
     padding-left: 10px;
   }
 
-  .acceptance-criteria :global(li) {
+  .expandable-content :global(li) {
     margin: 4px 0;
   }
 
-  .acceptance-criteria :global(p) {
+  .expandable-content :global(p) {
     margin: 6px 0;
   }
 
-  .acceptance-criteria :global(strong) {
+  .expandable-content :global(strong) {
     font-weight: 600;
     color: #111827;
   }
 
-  .acceptance-criteria :global(a) {
+  .expandable-content :global(a) {
     color: #3b82f6;
     text-decoration: none;
   }
 
-  .acceptance-criteria :global(a:hover) {
+  .expandable-content :global(a:hover) {
     text-decoration: underline;
   }
 </style>
