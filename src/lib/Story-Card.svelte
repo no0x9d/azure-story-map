@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Handle, Position } from "@xyflow/svelte";
+  import { Handle, Position } from '@xyflow/svelte';
   import { getLayoutContext } from './state.svelte';
 
   interface StoryData {
@@ -14,34 +14,34 @@
     webUrl: string;
   }
 
-  let { data, selected }: {data: StoryData, selected: boolean} = $props();
+  let { data, selected }: { data: StoryData; selected: boolean } = $props();
   let isAcceptanceCriteriaExpanded = $state(false);
   let isDescriptionExpanded = $state(false);
   let layout = getLayoutContext();
 
   function getStateColor(state: string): string {
     const stateColors: Record<string, string> = {
-      New: "rgb(178, 178, 178)",
-      Ready: "rgb(168, 206, 75)",
-      Active: "rgb(0, 122, 204)",
-      Refinement: "rgb(215, 229, 135)",
-      Resolved: "rgb(255, 157, 0)",
-      Closed: "rgb(51, 153, 51)",
-      "Product Increment": "rgb(0, 122, 204)",
-      "Confirmed": "rgb(215, 229, 135)",
+      New: 'rgb(178, 178, 178)',
+      Ready: 'rgb(168, 206, 75)',
+      Active: 'rgb(0, 122, 204)',
+      Refinement: 'rgb(215, 229, 135)',
+      Resolved: 'rgb(255, 157, 0)',
+      Closed: 'rgb(51, 153, 51)',
+      'Product Increment': 'rgb(0, 122, 204)',
+      Confirmed: 'rgb(215, 229, 135)'
     };
-    return stateColors[state] || "#6b7280";
+    return stateColors[state] || '#6b7280';
   }
 
   function getTypeColor(type?: string): string {
     const typeColors: Record<string, string> = {
-      "User Story": "rgb(0, 152, 199)",
-      Bug: "rgb(204, 41, 61)",
-      Task: "rgb(164, 136, 10)",
-      Epic: "rgb(224, 108, 0)",
-      Feature: "rgb(119, 59, 147)",
+      'User Story': 'rgb(0, 152, 199)',
+      Bug: 'rgb(204, 41, 61)',
+      Task: 'rgb(164, 136, 10)',
+      Epic: 'rgb(224, 108, 0)',
+      Feature: 'rgb(119, 59, 147)'
     };
-    return type ? typeColors[type] || "#6b7280" : "#6b7280";
+    return type ? typeColors[type] || '#6b7280' : '#6b7280';
   }
 
   function toggleAcceptanceCriteriaExpand(event: Event) {
@@ -55,11 +55,7 @@
   }
 </script>
 
-<div
-  class="story-card"
-  class:selected
-  style="--type-color: {getTypeColor(data.type)}"
->
+<div class="story-card" class:selected style="--type-color: {getTypeColor(data.type)}">
   <Handle type="target" position={layout.isHorizontal ? Position.Left : Position.Top} />
 
   <div class="story-header">
@@ -84,7 +80,12 @@
   </div>
 
   {#if data.description}
-    <button class="expand-button" class:expanded={isDescriptionExpanded} onclick={toggleDescriptionExpand} type="button">
+    <button
+      class="expand-button"
+      class:expanded={isDescriptionExpanded}
+      onclick={toggleDescriptionExpand}
+      type="button"
+    >
       <svg
         class="expand-icon"
         class:rotated={isDescriptionExpanded}
@@ -107,7 +108,12 @@
     {/if}
   {/if}
   {#if data.acceptanceCriteria}
-    <button class="expand-button" class:expanded={isAcceptanceCriteriaExpanded} onclick={toggleAcceptanceCriteriaExpand} type="button">
+    <button
+      class="expand-button"
+      class:expanded={isAcceptanceCriteriaExpanded}
+      onclick={toggleAcceptanceCriteriaExpand}
+      type="button"
+    >
       <svg
         class="expand-icon"
         class:rotated={isAcceptanceCriteriaExpanded}
@@ -143,7 +149,7 @@
     max-width: 320px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   .story-card:hover {
@@ -152,7 +158,9 @@
   }
 
   .story-card.selected {
-    border-color: #3b82f6;
+    border-top-color: #3b82f6;
+    border-right-color: #3b82f6;
+    border-bottom-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
   }
 
@@ -228,7 +236,7 @@
 
     &.expanded {
       border-bottom: none;
-      border-radius:6px 6px 0 0 ;
+      border-radius: 6px 6px 0 0;
     }
   }
 
@@ -242,7 +250,7 @@
     transition: transform 0.2s ease;
 
     &.rotated {
-        transform: rotate(180deg);
+      transform: rotate(180deg);
     }
   }
 
@@ -251,7 +259,7 @@
     background: #f9fafb;
     border: 1px solid #e5e7eb;
     border-top: none;
-    border-radius: 0 0 6px 6px ;
+    border-radius: 0 0 6px 6px;
     font-size: 12px;
     line-height: 1.5;
     color: #374151;
@@ -287,4 +295,3 @@
     text-decoration: underline;
   }
 </style>
-
