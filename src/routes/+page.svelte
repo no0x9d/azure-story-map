@@ -74,9 +74,6 @@
     }
   });
 
-  const dagreGraph = new dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
-
   let initialNodes = $derived.by(() =>
     graph.nodes
       .filter((n) => visibleIssueTypes.has(n.type))
@@ -103,6 +100,9 @@
   );
 
   function getLayoutedElements(nodes: Node[], edges: Edge[], direction: 'LR' | 'TB' = 'TB') {
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+
     const isHorizontal = direction === 'LR';
     dagreGraph.setGraph({ rankdir: direction });
 
@@ -250,6 +250,25 @@
     positionSnapshot = map;
   }
 
+  function handleDelete({
+    nodes: deletedNodes,
+    edges: deletedEdges
+  }: {
+    nodes: Node[];
+    edges: Edge[];
+  }) {
+    const deletedNodeIds = new Set(deletedNodes.map((n) => n.id));
+    const deletedEdgeIds = new Set(deletedEdges.map((e) => e.id));
+
+    nodes = untrack(() => nodes).filter((n) => !deletedNodeIds.has(n.id));
+    edges = untrack(() => edges).filter((e) => !deletedEdgeIds.has(e.id));
+
+    // Keep the position snapshot in sync
+    for (const id of deletedNodeIds) {
+      positionSnapshot.delete(id);
+    }
+  }
+
   function onLayout(direction: 'LR' | 'TB') {
     layout.isHorizontal = direction === 'LR';
     const layoutedElements = getLayoutedElements(
@@ -272,6 +291,7 @@
     minZoom={0.1}
     fitView
     onnodedragstop={onNodeDragStop}
+    ondelete={handleDelete}
   >
     <Controls />
     <Background />
