@@ -11,6 +11,7 @@
     Position,
     SvelteFlow
   } from '@xyflow/svelte';
+  import { invalidateAll } from '$app/navigation';
   import { setLayoutContext } from '$lib/state.svelte.js';
   import StoryCard from '$lib/Story-Card.svelte';
   import ConfigureIssuesDialog from '$lib/ConfigureIssuesDialog.svelte';
@@ -288,6 +289,9 @@
       />
     </Panel>
     <Panel position="top-right">
+      <button class="rounded outline p-1 bg-white" onclick={() => invalidateAll()}
+        >refresh data</button
+      >
       <button class="rounded outline p-1 bg-white" onclick={() => onLayout('TB')}
         >vertical layout</button
       >
