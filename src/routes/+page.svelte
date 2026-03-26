@@ -213,9 +213,6 @@
   });
 
   function handleImportState(state: SavedState) {
-    // Apply layout direction
-    layout.isHorizontal = state.layout.isHorizontal;
-
     // Apply filter selections (non-empty sets prevent the lazy-init effects from overriding)
     if (state.visibleEdgeTypes.length > 0) {
       visibleEdgeTypes = new Set(state.visibleEdgeTypes);
@@ -234,12 +231,21 @@
     // Apply saved positions to the current nodes immediately.
     // The layout $effect won't do this because all node IDs already exist in the
     // snapshot, so it falls into the data-only merge branch and skips repositioning.
-
+    // Update sourcePosition/targetPosition on each node so NodeWrapper's $effect fires
+    // and calls store.updateNodeInternals, which re-reads data-handlepos from the DOM.
+    // This keeps SvelteFlow's internal handle bounds (used for edge routing) in sync
+    // with the imported layout direction. Without this, edges route to the wrong side
+    // even though the Handle CSS classes (driven by layout context) are correct.
+    const importedIsHorizontal = state.layout.isHorizontal;
     nodes = untrack(() => nodes).map((n) => ({
       ...n,
-      position: map.get(n.id) ?? n.position
+      position: map.get(n.id) ?? n.position,
+      sourcePosition: importedIsHorizontal ? Position.Right : Position.Bottom,
+      targetPosition: importedIsHorizontal ? Position.Left : Position.Top
     }));
     edges = untrack(() => edges);
+
+    layout.isHorizontal = importedIsHorizontal;
   }
 
   function updatePositionSnapshot(updatedNodes: Node[]) {
