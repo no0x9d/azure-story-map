@@ -152,6 +152,16 @@
   // Updated via onNodeDragStop so drag-and-drop positions survive data refreshes.
   let positionSnapshot = new Map<string, { x: number; y: number }>();
 
+  // The canonical sorted node-ID key derived from the server graph.
+  // Changes only when the query result returns a genuinely different set of nodes,
+  // not when the same query is refreshed or when filters are toggled.
+  let graphNodeKey = $derived(
+    graph.nodes
+      .map((n) => n.id)
+      .sort()
+      .join(',')
+  );
+
   function onNodeDragStop() {
     updatePositionSnapshot(nodes);
   }
@@ -176,12 +186,20 @@
     visibleIssueTypes = newVisible;
   }
 
-  $effect(() => {
-    // Determine whether any node lacks a saved position (truly new nodes).
-    const hasNewNodes = initialNodes.some((n) => !positionSnapshot.has(n.id));
+  // The node-ID key that was in effect the last time Dagre ran.
+  // Dagre only runs when this differs from graphNodeKey (i.e. the query changed).
+  let lastLayoutKey = $state('');
 
-    if (hasNewNodes || untrack(() => nodes.length === 0)) {
-      // Full Dagre layout: preserve existing positions where available, lay out new nodes.
+  $effect(() => {
+    const currentKey = graphNodeKey;
+    const isNewQuery = currentKey !== untrack(() => lastLayoutKey);
+
+    if (isNewQuery) {
+      // The query result has a different set of nodes: run a full Dagre layout.
+      // Existing positions from the snapshot are preserved; truly new nodes are laid out.
+      untrack(() => {
+        lastLayoutKey = currentKey;
+      });
       const nodesWithPositions = initialNodes.map((n) => ({
         ...n,
         position: positionSnapshot.get(n.id) ?? n.position
@@ -193,21 +211,36 @@
       nodes = layoutedNodes;
       edges = layoutedEdges;
 
+      const hasNewNodes = initialNodes.some((n) => !positionSnapshot.has(n.id));
       if (hasNewNodes) {
         setTimeout(() => {
-          // Force re-layout after initial render to get correct node sizes
+          // Force re-layout after initial render to get correct node sizes.
           onLayout(layout.isHorizontal ? 'LR' : 'TB');
         }, 5);
       }
     } else {
-      // Only data changed for existing nodes (e.g. state/title updates from a re-query).
-      // Merge updated data into the existing positioned nodes without touching positions.
+      // Same query refreshed, or filter toggled.
+      // Merge updated node data and restore positions from the snapshot.
+      // New nodes that appeared after a refresh are placed at the origin so the
+      // user can position them manually.
       const dataById = new Map(initialNodes.map((n) => [n.id, n.data]));
-      nodes = untrack(() =>
-        nodes
-          .filter((n) => dataById.has(n.id))
-          .map((n) => ({ ...n, data: dataById.get(n.id) ?? n.data }))
-      ) as unknown as Node[];
+      const snapshot = untrack(() => positionSnapshot);
+      const currentNodes = untrack(() => nodes);
+      const currentIsHorizontal = untrack(() => layout.isHorizontal);
+      const direction = currentIsHorizontal ? 'LR' : 'TB';
+
+      const existingById = new Map(currentNodes.map((n) => [n.id, n]));
+      nodes = initialNodes.map((n) => {
+        const existing = existingById.get(n.id);
+        const position = snapshot.get(n.id) ?? existing?.position ?? n.position;
+        return {
+          ...(existing ?? n),
+          data: dataById.get(n.id) ?? n.data,
+          position,
+          sourcePosition: direction === 'LR' ? Position.Right : Position.Bottom,
+          targetPosition: direction === 'LR' ? Position.Left : Position.Top
+        } as unknown as Node;
+      });
       edges = initialEdges;
     }
   });
