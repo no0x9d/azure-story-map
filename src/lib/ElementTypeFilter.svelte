@@ -8,21 +8,31 @@
     visibleEdgeTypes,
     issueTypes,
     visibleIssueTypes,
+    issueStates,
+    visibleIssueStates,
+    issueStateToTypes = new Map(),
     ontoggle,
-    ontoggleIssueType
+    ontoggleIssueType,
+    ontoggleIssueState
   }: {
     open?: boolean;
     edgeTypes: string[];
     visibleEdgeTypes: Set<string>;
     issueTypes: string[];
     visibleIssueTypes: Set<string>;
+    issueStates: string[];
+    visibleIssueStates: Set<string>;
+    issueStateToTypes?: Map<string, Set<string>>;
     ontoggle: (edgeType: string) => void;
     ontoggleIssueType: (issueType: string) => void;
+    ontoggleIssueState: (issueState: string) => void;
   } = $props();
 </script>
 
 <Dialog.Root bind:open>
-  <Dialog.Trigger class="rounded outline p-1 bg-white" title="Configure Visualization"><FilterIcon></FilterIcon></Dialog.Trigger>
+  <Dialog.Trigger class="rounded outline p-1 bg-white" title="Configure Visualization"
+    ><FilterIcon></FilterIcon></Dialog.Trigger
+  >
   <Dialog.Portal>
     <Dialog.Overlay />
     <Dialog.Content
@@ -67,6 +77,38 @@
                     class="w-5 h-5 cursor-pointer"
                   />
                   <span class="text-sm select-none">{issueType}</span>
+                </label>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
+        <div>
+          <h3 class="font-medium mb-2">Show Issue States</h3>
+          {#if issueStates.length === 0}
+            <p class="text-gray-500 italic text-center py-4">
+              No issue states found in the diagram
+            </p>
+          {:else}
+            <div class="max-h-48 overflow-y-auto flex flex-col gap-2">
+              {#each issueStates as issueState (issueState)}
+                <label class="flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={visibleIssueStates.has(issueState)}
+                    onchange={() => ontoggleIssueState(issueState)}
+                    class="w-5 h-5 cursor-pointer"
+                  />
+                  <span class="text-sm select-none flex-1">{issueState}</span>
+                  {#if issueStateToTypes.has(issueState)}
+                    <span class="flex gap-1 flex-wrap justify-end">
+                      {#each Array.from(issueStateToTypes.get(issueState)!).sort() as type (type)}
+                        <span class="text-xs text-gray-500 bg-gray-100 rounded px-1.5 py-0.5"
+                          >{type}</span
+                        >
+                      {/each}
+                    </span>
+                  {/if}
                 </label>
               {/each}
             </div>

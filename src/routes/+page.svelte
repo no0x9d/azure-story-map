@@ -77,9 +77,39 @@
     }
   });
 
+  // Issue state filtering
+  let allIssueStates = $derived.by(() => {
+    const states = new Set<string>();
+    graph.nodes.forEach((n) => {
+      if (n.state) states.add(n.state);
+    });
+    return Array.from(states).sort();
+  });
+
+  // Mapping from issue state to the set of issue types that have that state
+  let issueStateToTypes = $derived.by(() => {
+    const map = new Map<string, Set<string>>();
+    graph.nodes.forEach((n) => {
+      if (n.state && n.type) {
+        if (!map.has(n.state)) map.set(n.state, new Set());
+        map.get(n.state)!.add(n.type);
+      }
+    });
+    return map;
+  });
+
+  let visibleIssueStates = $state(new Set<string>());
+
+  // Initialize visible issue states when all issue states change
+  $effect(() => {
+    if (allIssueStates.length > 0 && visibleIssueStates.size === 0) {
+      visibleIssueStates = new Set(allIssueStates);
+    }
+  });
+
   let initialNodes = $derived.by(() =>
     graph.nodes
-      .filter((n) => visibleIssueTypes.has(n.type))
+      .filter((n) => visibleIssueTypes.has(n.type) && visibleIssueStates.has(n.state))
       .map((n) => ({
         id: n.id.toString(10),
         type: 'storyCard',
@@ -189,6 +219,16 @@
     visibleIssueTypes = newVisible;
   }
 
+  function toggleIssueState(issueState: string) {
+    const newVisible = new Set(visibleIssueStates);
+    if (newVisible.has(issueState)) {
+      newVisible.delete(issueState);
+    } else {
+      newVisible.add(issueState);
+    }
+    visibleIssueStates = newVisible;
+  }
+
   // The node-ID key that was in effect the last time Dagre ran.
   // Dagre only runs when this differs from graphNodeKey (i.e. the query changed).
   let lastLayoutKey = $state('');
@@ -255,6 +295,9 @@
     }
     if (state.visibleIssueTypes.length > 0) {
       visibleIssueTypes = new Set(state.visibleIssueTypes);
+    }
+    if (state.visibleIssueStates && state.visibleIssueStates.length > 0) {
+      visibleIssueStates = new Set(state.visibleIssueStates);
     }
 
     // Build the position snapshot from the saved state.
@@ -340,8 +383,12 @@
     <MiniMap />
     <Panel position="top-left">
       <ConfigureIssuesDialog bind:open={dialogOpen} />
-      <button class="rounded outline p-1 bg-white" title="refresh data" onclick={() => invalidateAll()}>
-        <RefreshIcon/>
+      <button
+        class="rounded outline p-1 bg-white"
+        title="refresh data"
+        onclick={() => invalidateAll()}
+      >
+        <RefreshIcon />
       </button>
       <SaveLayoutDialog
         bind:open={saveLayoutOpen}
@@ -349,21 +396,34 @@
         {layout}
         {visibleEdgeTypes}
         {visibleIssueTypes}
+        {visibleIssueStates}
         onimport={handleImportState}
       />
-      <button class="ml-3 rounded outline p-1 bg-white" title="Layout Top to Bottom" onclick={() => onLayout('TB')}>
-        <HorizontalIcon/>
+      <button
+        class="ml-3 rounded outline p-1 bg-white"
+        title="Layout Top to Bottom"
+        onclick={() => onLayout('TB')}
+      >
+        <HorizontalIcon />
       </button>
-      <button class="rounded outline p-1 bg-white" title="Layout Left to Right" onclick={() => onLayout('LR')}>
-        <VerticalIcon/>
+      <button
+        class="rounded outline p-1 bg-white"
+        title="Layout Left to Right"
+        onclick={() => onLayout('LR')}
+      >
+        <VerticalIcon />
       </button>
       <EdgeTypeFilter
         edgeTypes={allEdgeTypes}
         {visibleEdgeTypes}
         issueTypes={allIssueTypes}
         {visibleIssueTypes}
+        issueStates={allIssueStates}
+        {visibleIssueStates}
+        {issueStateToTypes}
         ontoggle={toggleEdgeType}
         ontoggleIssueType={toggleIssueType}
+        ontoggleIssueState={toggleIssueState}
       />
     </Panel>
     <Panel position="top-right">

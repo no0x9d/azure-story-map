@@ -16,6 +16,7 @@
     /** Active filter sets */
     visibleEdgeTypes: string[];
     visibleIssueTypes: string[];
+    visibleIssueStates: string[];
     /**
      * Node positions keyed by node id.
      * The node data itself is re-fetched from Azure on import so that
@@ -30,6 +31,7 @@
     layout,
     visibleEdgeTypes,
     visibleIssueTypes,
+    visibleIssueStates,
     onimport
   }: {
     open?: boolean;
@@ -37,6 +39,7 @@
     layout: { isHorizontal: boolean };
     visibleEdgeTypes: Set<string>;
     visibleIssueTypes: Set<string>;
+    visibleIssueStates: Set<string>;
     onimport: (state: SavedState) => void;
   } = $props();
 
@@ -66,6 +69,7 @@
       layout: { isHorizontal: layout.isHorizontal },
       visibleEdgeTypes: Array.from(visibleEdgeTypes),
       visibleIssueTypes: Array.from(visibleIssueTypes),
+      visibleIssueStates: Array.from(visibleIssueStates),
       positions
     };
   }
@@ -160,7 +164,9 @@
 </script>
 
 <Dialog.Root bind:open>
-  <Dialog.Trigger class="rounded outline p-1 bg-white" title="Save / Load Layout"><SaveIcon></SaveIcon> </Dialog.Trigger>
+  <Dialog.Trigger class="rounded outline p-1 bg-white" title="Save / Load Layout"
+    ><SaveIcon></SaveIcon>
+  </Dialog.Trigger>
   <Dialog.Portal>
     <Dialog.Overlay />
     <Dialog.Content
