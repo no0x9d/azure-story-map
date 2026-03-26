@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import type { Node } from '@xyflow/svelte';
+  import SaveIcon from '~icons/material-symbols/save-outline';
 
   type SavedStateSource = { type: 'wiql'; query: string } | { type: 'ids'; ids: string } | null;
 
@@ -159,7 +160,7 @@
 </script>
 
 <Dialog.Root bind:open>
-  <Dialog.Trigger class="rounded outline p-1 bg-white">Save / Load Layout</Dialog.Trigger>
+  <Dialog.Trigger class="rounded outline p-1 bg-white" title="Save / Load Layout"><SaveIcon></SaveIcon> </Dialog.Trigger>
   <Dialog.Portal>
     <Dialog.Overlay />
     <Dialog.Content

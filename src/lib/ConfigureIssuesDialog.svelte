@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { extractIdsFromCSV } from '$lib/extractIdsFromCSV';
+  import Icon from '~icons/material-symbols/search-gear-outline-rounded';
 
   let {
     open = $bindable(false)
@@ -156,8 +157,8 @@
 </script>
 
 <Dialog.Root bind:open>
-  <Dialog.Trigger class="rounded outline p-1 bg-white">
-    Configure Issues
+  <Dialog.Trigger title="Configure Issues" class="rounded outline p-1 bg-white">
+    <Icon></Icon>
   </Dialog.Trigger>
   <Dialog.Portal>
     <Dialog.Overlay />

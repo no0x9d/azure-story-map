@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Dialog } from 'bits-ui';
+  import SettingsIcon from '~icons/material-symbols/settings';
 
   let {
     open = $bindable(false)
@@ -15,7 +16,7 @@
 
 <Dialog.Root bind:open>
   <Dialog.Trigger class="rounded outline p-1 bg-white">
-    Settings
+    <SettingsIcon></SettingsIcon>
   </Dialog.Trigger>
   <Dialog.Portal>
     <Dialog.Overlay />

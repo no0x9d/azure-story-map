@@ -20,6 +20,9 @@
   import SaveLayoutDialog, { type SavedState } from '$lib/SaveLayoutDialog.svelte';
   import type { PageProps } from './$types';
   import { untrack } from 'svelte';
+  import RefreshIcon from '~icons/material-symbols/refresh';
+  import HorizontalIcon from '~icons/material-symbols/align-horizontal-center';
+  import VerticalIcon from '~icons/material-symbols/align-vertical-center';
 
   import '@xyflow/svelte/dist/style.css';
 
@@ -348,14 +351,16 @@
       />
     </Panel>
     <Panel position="top-right">
-      <button class="rounded outline p-1 bg-white" onclick={() => invalidateAll()}
-        >refresh data</button
+      <button class="rounded outline p-1 bg-white" title="refresh data" onclick={() => invalidateAll()}
+        >
+        <RefreshIcon></RefreshIcon>
+      </button
       >
-      <button class="rounded outline p-1 bg-white" onclick={() => onLayout('TB')}
-        >vertical layout</button
+      <button class="rounded outline p-1 bg-white" title="Layout Top to Bottom" onclick={() => onLayout('TB')}
+        ><HorizontalIcon></HorizontalIcon></button
       >
-      <button class="rounded outline p-1 bg-white" onclick={() => onLayout('LR')}
-        >horizontal layout</button
+      <button class="rounded outline p-1 bg-white" title="Layout Left to Right" onclick={() => onLayout('LR')}
+        ><VerticalIcon></VerticalIcon></button
       >
       <EdgeTypeFilter
         edgeTypes={allEdgeTypes}

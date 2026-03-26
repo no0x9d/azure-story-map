@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Dialog } from 'bits-ui';
+  import FilterIcon from '~icons/material-symbols/filter-alt-outline';
 
   let {
     open = $bindable(false),
@@ -21,7 +22,7 @@
 </script>
 
 <Dialog.Root bind:open>
-  <Dialog.Trigger class="rounded outline p-1 bg-white">Configure Visualization</Dialog.Trigger>
+  <Dialog.Trigger class="rounded outline p-1 bg-white" title="Configure Visualization"><FilterIcon></FilterIcon></Dialog.Trigger>
   <Dialog.Portal>
     <Dialog.Overlay />
     <Dialog.Content
