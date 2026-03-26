@@ -340,7 +340,9 @@
     <MiniMap />
     <Panel position="top-left">
       <ConfigureIssuesDialog bind:open={dialogOpen} />
-      <SettingsDialog bind:open={settingsOpen} />
+      <button class="rounded outline p-1 bg-white" title="refresh data" onclick={() => invalidateAll()}>
+        <RefreshIcon/>
+      </button>
       <SaveLayoutDialog
         bind:open={saveLayoutOpen}
         {nodes}
@@ -349,19 +351,12 @@
         {visibleIssueTypes}
         onimport={handleImportState}
       />
-    </Panel>
-    <Panel position="top-right">
-      <button class="rounded outline p-1 bg-white" title="refresh data" onclick={() => invalidateAll()}
-        >
-        <RefreshIcon></RefreshIcon>
-      </button
-      >
-      <button class="rounded outline p-1 bg-white" title="Layout Top to Bottom" onclick={() => onLayout('TB')}
-        ><HorizontalIcon></HorizontalIcon></button
-      >
-      <button class="rounded outline p-1 bg-white" title="Layout Left to Right" onclick={() => onLayout('LR')}
-        ><VerticalIcon></VerticalIcon></button
-      >
+      <button class="ml-3 rounded outline p-1 bg-white" title="Layout Top to Bottom" onclick={() => onLayout('TB')}>
+        <HorizontalIcon/>
+      </button>
+      <button class="rounded outline p-1 bg-white" title="Layout Left to Right" onclick={() => onLayout('LR')}>
+        <VerticalIcon/>
+      </button>
       <EdgeTypeFilter
         edgeTypes={allEdgeTypes}
         {visibleEdgeTypes}
@@ -370,6 +365,9 @@
         ontoggle={toggleEdgeType}
         ontoggleIssueType={toggleIssueType}
       />
+    </Panel>
+    <Panel position="top-right">
+      <SettingsDialog bind:open={settingsOpen} />
     </Panel>
   </SvelteFlow>
 </div>
