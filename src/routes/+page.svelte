@@ -143,8 +143,11 @@
       dagreGraph.setNode(node.id, { width: nodeWidth(node), height: nodeHeight(node) });
     });
 
+    const nodeIds = new Set(nodes.map((n) => n.id));
     edges.forEach((edge) => {
-      dagreGraph.setEdge(edge.source, edge.target);
+      if (nodeIds.has(edge.source) && nodeIds.has(edge.target)) {
+        dagreGraph.setEdge(edge.source, edge.target);
+      }
     });
 
     dagre.layout(dagreGraph);
@@ -167,7 +170,11 @@
 
     // console.log(layoutedNodes);
 
-    return { nodes: layoutedNodes, edges };
+    const filteredEdges = edges.filter(
+      (edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
+    );
+
+    return { nodes: layoutedNodes, edges: filteredEdges };
   }
 
   function nodeWidth(node: Node) {
