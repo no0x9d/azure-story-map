@@ -15,8 +15,14 @@
     layout: { isHorizontal: boolean };
     /** Active filter sets */
     visibleEdgeTypes: string[];
-    visibleIssueTypes: string[];
-    visibleIssueStates: string[];
+    /**
+     * Visible states per issue type.
+     * A type absent from this record is hidden entirely.
+     */
+    visibleStatesByType: Record<string, string[]>;
+    // Legacy field kept for backward-compat reading of old exports
+    visibleIssueTypes?: string[];
+    visibleIssueStates?: string[];
     /**
      * Node positions keyed by node id.
      * The node data itself is re-fetched from Azure on import so that
@@ -30,16 +36,14 @@
     nodes,
     layout,
     visibleEdgeTypes,
-    visibleIssueTypes,
-    visibleIssueStates,
+    visibleStatesByType,
     onimport
   }: {
     open?: boolean;
     nodes: Node[];
     layout: { isHorizontal: boolean };
     visibleEdgeTypes: Set<string>;
-    visibleIssueTypes: Set<string>;
-    visibleIssueStates: Set<string>;
+    visibleStatesByType: Map<string, Set<string>>;
     onimport: (state: SavedState) => void;
   } = $props();
 
@@ -62,14 +66,18 @@
       positions[n.id] = { x: n.position.x, y: n.position.y };
     }
 
+    const visibleStatesByTypeRecord: Record<string, string[]> = {};
+    visibleStatesByType.forEach((states, type) => {
+      visibleStatesByTypeRecord[type] = Array.from(states);
+    });
+
     return {
       version: 1,
       timestamp: Date.now(),
       source,
       layout: { isHorizontal: layout.isHorizontal },
       visibleEdgeTypes: Array.from(visibleEdgeTypes),
-      visibleIssueTypes: Array.from(visibleIssueTypes),
-      visibleIssueStates: Array.from(visibleIssueStates),
+      visibleStatesByType: visibleStatesByTypeRecord,
       positions
     };
   }

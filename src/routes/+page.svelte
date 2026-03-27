@@ -59,57 +59,52 @@
     }
   });
 
-  // Issue type filtering
-  let allIssueTypes = $derived.by(() => {
-    const types = new Set<string>();
-    graph.nodes.forEach((n) => {
-      if (n.type) types.add(n.type);
-    });
-    return Array.from(types).sort();
-  });
-
-  let visibleIssueTypes = $state(new Set<string>());
-
-  // Initialize visible issue types when all issue types change
-  $effect(() => {
-    if (allIssueTypes.length > 0 && visibleIssueTypes.size === 0) {
-      visibleIssueTypes = new Set(allIssueTypes);
-    }
-  });
-
-  // Issue state filtering
-  let allIssueStates = $derived.by(() => {
-    const states = new Set<string>();
-    graph.nodes.forEach((n) => {
-      if (n.state) states.add(n.state);
-    });
-    return Array.from(states).sort();
-  });
-
-  // Mapping from issue state to the set of issue types that have that state
-  let issueStateToTypes = $derived.by(() => {
+  // Issue type / state filtering
+  // statesByType: Map<issueType, Set<state>> — derived from graph nodes
+  let statesByType = $derived.by(() => {
     const map = new Map<string, Set<string>>();
     graph.nodes.forEach((n) => {
-      if (n.state && n.type) {
-        if (!map.has(n.state)) map.set(n.state, new Set());
-        map.get(n.state)!.add(n.type);
-      }
+      if (!n.type) return;
+      if (!map.has(n.type)) map.set(n.type, new Set());
+      if (n.state) map.get(n.type)!.add(n.state);
     });
-    return map;
+    // Sort the inner sets by converting to sorted arrays (keep Map order stable)
+    const sorted = new Map<string, Set<string>>();
+    Array.from(map.keys())
+      .sort()
+      .forEach((type) => {
+        sorted.set(type, new Set(Array.from(map.get(type)!).sort()));
+      });
+    return sorted;
   });
 
-  let visibleIssueStates = $state(new Set<string>());
+  // visibleStatesByType: Map<issueType, Set<state>> — driven by user toggles
+  // A type present in the map is visible; its value is the set of visible states.
+  let visibleStatesByType = $state(new Map<string, Set<string>>());
 
-  // Initialize visible issue states when all issue states change
+  // Initialize / extend visibleStatesByType when statesByType changes
   $effect(() => {
-    if (allIssueStates.length > 0 && visibleIssueStates.size === 0) {
-      visibleIssueStates = new Set(allIssueStates);
+    const available = statesByType;
+    const current = visibleStatesByType;
+    // Only initialise entries that aren't tracked yet
+    let changed = false;
+    available.forEach((states, type) => {
+      if (!current.has(type)) {
+        current.set(type, new Set(states));
+        changed = true;
+      }
+    });
+    if (changed) {
+      visibleStatesByType = new Map(current);
     }
   });
 
   let initialNodes = $derived.by(() =>
     graph.nodes
-      .filter((n) => visibleIssueTypes.has(n.type) && visibleIssueStates.has(n.state))
+      .filter((n) => {
+        const visibleStates = visibleStatesByType.get(n.type);
+        return visibleStates !== undefined && visibleStates.has(n.state);
+      })
       .map((n) => ({
         id: n.id.toString(10),
         type: 'storyCard',
@@ -217,23 +212,25 @@
   }
 
   function toggleIssueType(issueType: string) {
-    const newVisible = new Set(visibleIssueTypes);
-    if (newVisible.has(issueType)) {
-      newVisible.delete(issueType);
-    } else {
-      newVisible.add(issueType);
-    }
-    visibleIssueTypes = newVisible;
+    const next = new Map(visibleStatesByType);
+    const allStates = statesByType.get(issueType) ?? new Set<string>();
+    const current = next.get(issueType);
+    // If all states are currently selected, deselect all; otherwise select all.
+    const allSelected = current !== undefined && current.size === allStates.size;
+    next.set(issueType, allSelected ? new Set() : new Set(allStates));
+    visibleStatesByType = next;
   }
 
-  function toggleIssueState(issueState: string) {
-    const newVisible = new Set(visibleIssueStates);
-    if (newVisible.has(issueState)) {
-      newVisible.delete(issueState);
+  function toggleIssueState(issueType: string, issueState: string) {
+    const next = new Map(visibleStatesByType);
+    const states = new Set(next.get(issueType) ?? []);
+    if (states.has(issueState)) {
+      states.delete(issueState);
     } else {
-      newVisible.add(issueState);
+      states.add(issueState);
     }
-    visibleIssueStates = newVisible;
+    next.set(issueType, states);
+    visibleStatesByType = next;
   }
 
   // The node-ID key that was in effect the last time Dagre ran.
@@ -300,11 +297,12 @@
     if (state.visibleEdgeTypes.length > 0) {
       visibleEdgeTypes = new Set(state.visibleEdgeTypes);
     }
-    if (state.visibleIssueTypes.length > 0) {
-      visibleIssueTypes = new Set(state.visibleIssueTypes);
-    }
-    if (state.visibleIssueStates && state.visibleIssueStates.length > 0) {
-      visibleIssueStates = new Set(state.visibleIssueStates);
+    if (state.visibleStatesByType && Object.keys(state.visibleStatesByType).length > 0) {
+      const map = new Map<string, Set<string>>();
+      for (const [type, states] of Object.entries(state.visibleStatesByType)) {
+        map.set(type, new Set(states));
+      }
+      visibleStatesByType = map;
     }
 
     // Build the position snapshot from the saved state.
@@ -402,8 +400,7 @@
         {nodes}
         {layout}
         {visibleEdgeTypes}
-        {visibleIssueTypes}
-        {visibleIssueStates}
+        {visibleStatesByType}
         onimport={handleImportState}
       />
       <button
@@ -423,11 +420,8 @@
       <EdgeTypeFilter
         edgeTypes={allEdgeTypes}
         {visibleEdgeTypes}
-        issueTypes={allIssueTypes}
-        {visibleIssueTypes}
-        issueStates={allIssueStates}
-        {visibleIssueStates}
-        {issueStateToTypes}
+        {statesByType}
+        {visibleStatesByType}
         ontoggle={toggleEdgeType}
         ontoggleIssueType={toggleIssueType}
         ontoggleIssueState={toggleIssueState}
