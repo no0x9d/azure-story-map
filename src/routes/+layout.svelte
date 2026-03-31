@@ -1,22 +1,11 @@
 <script lang="ts">
-	import './layout.css';
+  import './layout.css';
 
-	let { children } = $props();
+  let { children } = $props();
 </script>
 
-<div class="app">
-	<main>
-		{@render children()}
-	</main>
+<div class="min-h-screen">
+  <main class="box-border">
+    {@render children()}
+  </main>
 </div>
-
-<style>
-	.app {
-		min-height: 100vh;
-	}
-
-	main {
-		box-sizing: border-box;
-	}
-
-</style>

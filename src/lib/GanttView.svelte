@@ -239,7 +239,7 @@
   ];
 </script>
 
-<div class="gantt-container">
+<div class="w-full h-full overflow-hidden">
   {#if ganttData.tasks.length > 0}
     <Willow>
       <Gantt
@@ -254,24 +254,8 @@
       />
     </Willow>
   {:else}
-    <div class="empty-state">
+    <div class="flex items-center justify-center h-full text-gray-500 text-sm">
       <p>No tasks to display. Load work items or adjust your filters.</p>
     </div>
   {/if}
 </div>
-
-<style>
-  .gantt-container {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-  .empty-state {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #6b7280;
-    font-size: 14px;
-  }
-</style>
