@@ -196,6 +196,11 @@
   // Updated via onNodeDragStop so drag-and-drop positions survive data refreshes.
   let positionSnapshot = new Map<string, { x: number; y: number }>();
 
+  // Set of node IDs that were interactively deleted from the canvas.
+  // Stored as strings (SvelteFlow uses string IDs) so we can match against
+  // the numeric StoryNode IDs used in filteredNodes / GanttView.
+  let deletedNodeIds = $state(new Set<string>());
+
   // The canonical sorted node-ID key derived from the server graph.
   // Changes only when the query result returns a genuinely different set of nodes,
   // not when the same query is refreshed or when filters are toggled.
@@ -255,6 +260,8 @@
       // Existing positions from the snapshot are preserved; truly new nodes are laid out.
       untrack(() => {
         lastLayoutKey = currentKey;
+        // Clear canvas deletions when a genuinely new query arrives
+        deletedNodeIds = new Set<string>();
       });
       const nodesWithPositions = initialNodes.map((n) => ({
         ...n,
@@ -356,14 +363,17 @@
     nodes: Node[];
     edges: Edge[];
   }) {
-    const deletedNodeIds = new Set(deletedNodes.map((n) => n.id));
-    const deletedEdgeIds = new Set(deletedEdges.map((e) => e.id));
+    const removedNodeIds = new Set(deletedNodes.map((n) => n.id));
+    const removedEdgeIds = new Set(deletedEdges.map((e) => e.id));
 
-    nodes = untrack(() => nodes).filter((n) => !deletedNodeIds.has(n.id));
-    edges = untrack(() => edges).filter((e) => !deletedEdgeIds.has(e.id));
+    nodes = untrack(() => nodes).filter((n) => !removedNodeIds.has(n.id));
+    edges = untrack(() => edges).filter((e) => !removedEdgeIds.has(e.id));
+
+    // Track deleted nodes so the Gantt view can exclude them too
+    deletedNodeIds = new Set([...deletedNodeIds, ...removedNodeIds]);
 
     // Keep the position snapshot in sync
-    for (const id of deletedNodeIds) {
+    for (const id of removedNodeIds) {
       positionSnapshot.delete(id);
     }
   }
@@ -481,7 +491,10 @@
       </div>
     </div>
     <div class="flex-1 min-h-0">
-      <GanttView nodes={filteredNodes} edges={graph.edges} />
+      <GanttView
+        nodes={filteredNodes.filter((n) => !deletedNodeIds.has(n.id.toString(10)))}
+        edges={graph.edges}
+      />
     </div>
   </div>
 {/if}
