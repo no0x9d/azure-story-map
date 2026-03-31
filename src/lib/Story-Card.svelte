@@ -2,6 +2,7 @@
   import { Handle, Position } from '@xyflow/svelte';
   import { getLayoutContext } from './state.svelte';
   import { getStateColor, getTypeColor } from './colors';
+  import StoryDetailDialog from './StoryDetailDialog.svelte';
 
   interface StoryData {
     id: number;
@@ -17,18 +18,12 @@
   }
 
   let { data, selected }: { data: StoryData; selected: boolean } = $props();
-  let isAcceptanceCriteriaExpanded = $state(false);
-  let isDescriptionExpanded = $state(false);
+  let isDetailOpen = $state(false);
   let layout = getLayoutContext();
 
-  function toggleAcceptanceCriteriaExpand(event: Event) {
+  function openDetail(event: Event) {
     event.stopPropagation();
-    isAcceptanceCriteriaExpanded = !isAcceptanceCriteriaExpanded;
-  }
-
-  function toggleDescriptionExpand(event: Event) {
-    event.stopPropagation();
-    isDescriptionExpanded = !isDescriptionExpanded;
+    isDetailOpen = true;
   }
 </script>
 
@@ -67,62 +62,18 @@
     </div>
   {/if}
 
-  {#if data.description}
-    <button
-      class="expand-button"
-      class:expanded={isDescriptionExpanded}
-      onclick={toggleDescriptionExpand}
-      type="button"
-    >
-      <svg
-        class="expand-icon"
-        class:rotated={isDescriptionExpanded}
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
+  {#if data.description || data.acceptanceCriteria}
+    <button class="detail-button" onclick={openDetail} type="button">
+      <svg class="detail-icon" viewBox="0 0 20 20" fill="currentColor">
         <path
-          fill-rule="evenodd"
-          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-          clip-rule="evenodd"
+          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 000 2h8a1 1 0 100-2H6zm0 3a1 1 0 000 2h4a1 1 0 100-2H6z"
         />
       </svg>
-      <span>Description</span>
+      <span>Details</span>
     </button>
-
-    {#if isDescriptionExpanded}
-      <div class="expandable-content" onscroll={(event) => event.stopPropagation()}>
-        {@html data.description}
-      </div>
-    {/if}
   {/if}
-  {#if data.acceptanceCriteria}
-    <button
-      class="expand-button"
-      class:expanded={isAcceptanceCriteriaExpanded}
-      onclick={toggleAcceptanceCriteriaExpand}
-      type="button"
-    >
-      <svg
-        class="expand-icon"
-        class:rotated={isAcceptanceCriteriaExpanded}
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fill-rule="evenodd"
-          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-          clip-rule="evenodd"
-        />
-      </svg>
-      <span>Acceptance Criteria</span>
-    </button>
 
-    {#if isAcceptanceCriteriaExpanded}
-      <div class="expandable-content" onscroll={(event) => event.stopPropagation()}>
-        {@html data.acceptanceCriteria}
-      </div>
-    {/if}
-  {/if}
+  <StoryDetailDialog {data} bind:open={isDetailOpen} />
 
   <Handle type="source" position={layout.isHorizontal ? Position.Right : Position.Bottom} />
 </div>
@@ -222,7 +173,7 @@
     flex-shrink: 0;
   }
 
-  .expand-button {
+  .detail-button {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -237,65 +188,16 @@
     font-weight: 500;
     color: #374151;
     transition: all 0.2s ease;
-
-    &.expanded {
-      border-bottom: none;
-      border-radius: 6px 6px 0 0;
-    }
   }
 
-  .expand-button:hover {
-    background: #f3f4f6;
+  .detail-button:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
   }
 
-  .expand-icon {
-    width: 16px;
-    height: 16px;
-    transition: transform 0.2s ease;
-
-    &.rotated {
-      transform: rotate(180deg);
-    }
-  }
-
-  .expandable-content {
-    padding: 0 10px 10px;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-top: none;
-    border-radius: 0 0 6px 6px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: #374151;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
-  .expandable-content :global(ul),
-  .expandable-content :global(ol) {
-    margin: 8px 0;
-    padding-left: 10px;
-  }
-
-  .expandable-content :global(li) {
-    margin: 4px 0;
-  }
-
-  .expandable-content :global(p) {
-    margin: 6px 0;
-  }
-
-  .expandable-content :global(strong) {
-    font-weight: 600;
-    color: #111827;
-  }
-
-  .expandable-content :global(a) {
-    color: #3b82f6;
-    text-decoration: none;
-  }
-
-  .expandable-content :global(a:hover) {
-    text-decoration: underline;
+  .detail-icon {
+    width: 14px;
+    height: 14px;
   }
 </style>
