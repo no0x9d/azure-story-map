@@ -1,19 +1,33 @@
 <script lang="ts">
   import { Handle, Position } from '@xyflow/svelte';
-  import { getLayoutContext } from './state.svelte';
+  import { getLayoutContext, getCanvasContext } from './state.svelte';
   import { getStateColor, getTypeColor } from './colors';
   import StoryDetailDialog from './StoryDetailDialog.svelte';
   import type { StoryData } from '$lib/types';
   import CalendarIcon from '~icons/material-symbols/calendar-today';
   import NotesIcon from '~icons/material-symbols/notes';
+  import ExpandLessIcon from '~icons/material-symbols/expand-less';
+  import ExpandMoreIcon from '~icons/material-symbols/expand-more';
 
   let { data, selected }: { data: StoryData; selected: boolean } = $props();
   let isDetailOpen = $state(false);
   let layout = getLayoutContext();
+  let canvasCtx = getCanvasContext();
+
+  let nodeId = $derived(data.id.toString(10));
+  let childCount = $derived(canvasCtx.getChildCount(nodeId));
+  let collapsed = $derived(canvasCtx.isCollapsed(nodeId));
 
   function openDetail(event: Event) {
     event.stopPropagation();
     isDetailOpen = true;
+  }
+
+  function handleDblClick(event: MouseEvent) {
+    if (childCount > 0) {
+      event.stopPropagation();
+      canvasCtx.toggleCollapseNode(nodeId);
+    }
   }
 </script>
 
@@ -23,7 +37,11 @@
     {selected
     ? 'border-t-blue-500 border-r-blue-500 border-b-blue-500 ring-[3px] ring-blue-500/30'
     : ''}"
-  style="border-left-color: {getTypeColor(data.type)}"
+  style="border-left-color: {getTypeColor(data.type)}{childCount > 0 ? '; cursor: pointer' : ''}"
+  ondblclick={handleDblClick}
+  role="button"
+  tabindex={0}
+  aria-expanded={childCount > 0 ? !collapsed : undefined}
 >
   <Handle type="target" position={layout.isHorizontal ? Position.Left : Position.Top} />
 
@@ -72,6 +90,21 @@
       <NotesIcon class="w-3.5 h-3.5" />
       <span>Details</span>
     </button>
+  {/if}
+
+  {#if childCount > 0}
+    <div
+      class="flex items-center justify-center gap-1 mt-2 pt-1.5 border-t border-gray-100 text-[11px] font-medium transition-colors duration-150
+        {collapsed ? 'text-amber-600' : 'text-gray-400'}"
+    >
+      {#if collapsed}
+        <ExpandMoreIcon class="w-3.5 h-3.5" />
+        <span>{childCount} {childCount === 1 ? 'child' : 'children'} hidden</span>
+      {:else}
+        <ExpandLessIcon class="w-3.5 h-3.5" />
+        <span>{childCount}</span>
+      {/if}
+    </div>
   {/if}
 
   <StoryDetailDialog {data} bind:open={isDetailOpen} />

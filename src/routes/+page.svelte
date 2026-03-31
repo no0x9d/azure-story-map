@@ -1,6 +1,6 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
-  import { setLayoutContext } from '$lib/state.svelte.js';
+  import { setLayoutContext, setCanvasContext } from '$lib/state.svelte.js';
   import type { SavedState } from '$lib/SaveLayoutDialog.svelte';
   import StoryMapView from '$lib/StoryMapView.svelte';
   import GanttViewContainer from '$lib/GanttViewContainer.svelte';
@@ -29,6 +29,12 @@
     getFilteredEdges: () => filterState.filteredEdges,
     getGraphNodes: () => graph.nodes,
     layout
+  });
+
+  setCanvasContext({
+    toggleCollapseNode: (nodeId: string) => canvas.toggleCollapseNode(nodeId),
+    isCollapsed: (nodeId: string) => canvas.isCollapsed(nodeId),
+    getChildCount: (nodeId: string) => canvas.getChildCount(nodeId)
   });
 
   function handleImportState(state: SavedState) {
