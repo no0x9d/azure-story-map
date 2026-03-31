@@ -87,9 +87,9 @@
       </div>
 
       <!-- Scrollable content area -->
-      <div class="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+      <div class="flex-1 overflow-y-auto px-3 py-5 space-y-6">
         {#if data.description}
-          <section>
+          <section class="divide-y divide-gray-400 border border-gray-200 rounded-lg px-4 py-3">
             <h2
               class="text-lg font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2"
             >
@@ -103,7 +103,7 @@
         {/if}
 
         {#if data.acceptanceCriteria}
-          <section>
+          <section class="divide-y divide-gray-400 border border-gray-200 rounded-lg px-4 py-3">
             <h2
               class="text-lg font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2"
             >
