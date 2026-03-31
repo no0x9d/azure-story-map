@@ -20,9 +20,12 @@
   import SaveLayoutDialog, { type SavedState } from '$lib/SaveLayoutDialog.svelte';
   import type { PageProps } from './$types';
   import { untrack } from 'svelte';
+  import GanttView from '$lib/GanttView.svelte';
   import RefreshIcon from '~icons/material-symbols/refresh';
   import HorizontalIcon from '~icons/material-symbols/align-horizontal-center';
   import VerticalIcon from '~icons/material-symbols/align-vertical-center';
+  import StoryMapIcon from '~icons/material-symbols/account-tree';
+  import GanttIcon from '~icons/material-symbols/view-timeline';
 
   import '@xyflow/svelte/dist/style.css';
 
@@ -35,6 +38,9 @@
 
   let layout = $state({ isHorizontal: false });
   setLayoutContext(layout);
+
+  // View mode: story map or gantt
+  let viewMode = $state<'storymap' | 'gantt'>('storymap');
 
   // Dialog state
   let dialogOpen = $state(false);
@@ -99,32 +105,35 @@
     }
   });
 
+  // Filtered graph data (shared between Story Map and Gantt views)
+  let filteredNodes = $derived(
+    graph.nodes.filter((n) => {
+      const visibleStates = visibleStatesByType.get(n.type);
+      return visibleStates !== undefined && visibleStates.has(n.state);
+    })
+  );
+
+  let filteredEdges = $derived(graph.edges.filter((e) => visibleEdgeTypes.has(e.name)));
+
   let initialNodes = $derived.by(() =>
-    graph.nodes
-      .filter((n) => {
-        const visibleStates = visibleStatesByType.get(n.type);
-        return visibleStates !== undefined && visibleStates.has(n.state);
-      })
-      .map((n) => ({
-        id: n.id.toString(10),
-        type: 'storyCard',
-        data: n,
-        position: { x: 0, y: 0 }
-      }))
+    filteredNodes.map((n) => ({
+      id: n.id.toString(10),
+      type: 'storyCard',
+      data: n,
+      position: { x: 0, y: 0 }
+    }))
   );
 
   let initialEdges = $derived.by(() =>
-    graph.edges
-      .filter((e) => visibleEdgeTypes.has(e.name))
-      .map((e) => ({
-        id: `${e.from}-${e.to}`,
-        source: e.from.toString(10),
-        target: e.to.toString(10),
-        label: e.name,
-        markerEnd: {
-          type: MarkerType.Arrow
-        }
-      }))
+    filteredEdges.map((e) => ({
+      id: `${e.from}-${e.to}`,
+      source: e.from.toString(10),
+      target: e.to.toString(10),
+      label: e.name,
+      markerEnd: {
+        type: MarkerType.Arrow
+      }
+    }))
   );
 
   function getLayoutedElements(nodes: Node[], edges: Edge[], direction: 'LR' | 'TB' = 'TB') {
@@ -373,20 +382,76 @@
   }
 </script>
 
-<div style:height="100vh">
-  <SvelteFlow
-    bind:nodes
-    bind:edges
-    {nodeTypes}
-    minZoom={0.1}
-    fitView
-    onnodedragstop={onNodeDragStop}
-    ondelete={handleDelete}
-  >
-    <Controls />
-    <Background />
-    <MiniMap />
-    <Panel position="top-left">
+{#if viewMode === 'storymap'}
+  <div style:height="100vh">
+    <SvelteFlow
+      bind:nodes
+      bind:edges
+      {nodeTypes}
+      minZoom={0.1}
+      fitView
+      onnodedragstop={onNodeDragStop}
+      ondelete={handleDelete}
+    >
+      <Controls />
+      <Background />
+      <MiniMap />
+      <Panel position="top-left">
+        <ConfigureIssuesDialog bind:open={dialogOpen} />
+        <button
+          class="rounded outline p-1 bg-white"
+          title="refresh data"
+          onclick={() => invalidateAll()}
+        >
+          <RefreshIcon />
+        </button>
+        <SaveLayoutDialog
+          bind:open={saveLayoutOpen}
+          {nodes}
+          {layout}
+          {visibleEdgeTypes}
+          {visibleStatesByType}
+          onimport={handleImportState}
+        />
+        <button
+          class="ml-3 rounded outline p-1 bg-white"
+          title="Layout Top to Bottom"
+          onclick={() => onLayout('TB')}
+        >
+          <HorizontalIcon />
+        </button>
+        <button
+          class="rounded outline p-1 bg-white"
+          title="Layout Left to Right"
+          onclick={() => onLayout('LR')}
+        >
+          <VerticalIcon />
+        </button>
+        <EdgeTypeFilter
+          edgeTypes={allEdgeTypes}
+          {visibleEdgeTypes}
+          {statesByType}
+          {visibleStatesByType}
+          ontoggle={toggleEdgeType}
+          ontoggleIssueType={toggleIssueType}
+          ontoggleIssueState={toggleIssueState}
+        />
+        <button
+          class="ml-3 rounded outline p-1 bg-white font-semibold"
+          title="Switch to Gantt View"
+          onclick={() => (viewMode = 'gantt')}
+        >
+          <GanttIcon />
+        </button>
+      </Panel>
+      <Panel position="top-right">
+        <SettingsDialog bind:open={settingsOpen} />
+      </Panel>
+    </SvelteFlow>
+  </div>
+{:else}
+  <div style:height="100vh" class="flex flex-col">
+    <div class="flex items-center gap-1 p-2 bg-white border-b">
       <ConfigureIssuesDialog bind:open={dialogOpen} />
       <button
         class="rounded outline p-1 bg-white"
@@ -394,28 +459,6 @@
         onclick={() => invalidateAll()}
       >
         <RefreshIcon />
-      </button>
-      <SaveLayoutDialog
-        bind:open={saveLayoutOpen}
-        {nodes}
-        {layout}
-        {visibleEdgeTypes}
-        {visibleStatesByType}
-        onimport={handleImportState}
-      />
-      <button
-        class="ml-3 rounded outline p-1 bg-white"
-        title="Layout Top to Bottom"
-        onclick={() => onLayout('TB')}
-      >
-        <HorizontalIcon />
-      </button>
-      <button
-        class="rounded outline p-1 bg-white"
-        title="Layout Left to Right"
-        onclick={() => onLayout('LR')}
-      >
-        <VerticalIcon />
       </button>
       <EdgeTypeFilter
         edgeTypes={allEdgeTypes}
@@ -426,9 +469,19 @@
         ontoggleIssueType={toggleIssueType}
         ontoggleIssueState={toggleIssueState}
       />
-    </Panel>
-    <Panel position="top-right">
-      <SettingsDialog bind:open={settingsOpen} />
-    </Panel>
-  </SvelteFlow>
-</div>
+      <button
+        class="ml-3 rounded outline p-1 bg-white font-semibold"
+        title="Switch to Story Map View"
+        onclick={() => (viewMode = 'storymap')}
+      >
+        <StoryMapIcon />
+      </button>
+      <div class="ml-auto">
+        <SettingsDialog bind:open={settingsOpen} />
+      </div>
+    </div>
+    <div class="flex-1 min-h-0">
+      <GanttView nodes={filteredNodes} edges={graph.edges} />
+    </div>
+  </div>
+{/if}
