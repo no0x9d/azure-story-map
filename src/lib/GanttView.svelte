@@ -12,7 +12,7 @@
 
   // 1 Story Point = 1 days in the Gantt chart (durationUnit is "day")
   const DAYS_PER_SP = 1;
-  const SP_DURATION_DEFAULT = 1;
+  const SP_DURATION_DEFAULT = 3;
 
   /**
    * Build Gantt tasks and links from the story map graph.
@@ -185,7 +185,6 @@
         text: `${n.title}`,
         start: new Date(start),
         duration: duration,
-        // progress: stateToProgress(n.state),
         type: isSummary ? 'summary' : ('task' as 'summary' | 'task' | 'milestone'),
         parent: parentId,
         open: isSummary,
