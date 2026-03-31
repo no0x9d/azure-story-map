@@ -2,6 +2,9 @@
   import { Dialog } from 'bits-ui';
   import { getStateColor, getTypeColor } from './colors';
   import type { StoryData } from '$lib/types';
+  import CloseIcon from '~icons/material-symbols/close';
+  import DescriptionIcon from '~icons/material-symbols/description';
+  import CheckIcon from '~icons/material-symbols/check';
 
   let {
     open = $bindable(false),
@@ -44,11 +47,7 @@
         <Dialog.Close
           class="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 flex-shrink-0"
         >
-          <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-            />
-          </svg>
+          <CloseIcon class="w-5 h-5" />
         </Dialog.Close>
       </div>
 
@@ -94,13 +93,7 @@
             <h2
               class="text-lg font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2"
             >
-              <svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fill-rule="evenodd"
-                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                  clip-rule="evenodd"
-                />
-              </svg>
+              <DescriptionIcon class="w-4 h-4 text-gray-400" />
               Description
             </h2>
             <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
@@ -114,13 +107,7 @@
             <h2
               class="text-lg font-semibold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-2"
             >
-              <svg class="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fill-rule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clip-rule="evenodd"
-                />
-              </svg>
+              <CheckIcon class="w-4 h-4 text-gray-400" />
               Acceptance Criteria
             </h2>
             <div class="prose prose-sm max-w-none text-gray-700 leading-relaxed">

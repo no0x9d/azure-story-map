@@ -4,6 +4,8 @@
   import { getStateColor, getTypeColor } from './colors';
   import StoryDetailDialog from './StoryDetailDialog.svelte';
   import type { StoryData } from '$lib/types';
+  import CalendarIcon from '~icons/material-symbols/calendar-today';
+  import NotesIcon from '~icons/material-symbols/notes';
 
   let { data, selected }: { data: StoryData; selected: boolean } = $props();
   let isDetailOpen = $state(false);
@@ -55,11 +57,7 @@
 
   {#if data.iterationPath}
     <div class="flex items-center gap-1 mt-2 text-[11px] text-gray-500 font-medium">
-      <svg class="w-3 h-3 shrink-0" viewBox="0 0 16 16" fill="currentColor">
-        <path
-          d="M4.75 0a.75.75 0 0 1 .75.75V2h5V.75a.75.75 0 0 1 1.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 16H2.75A1.75 1.75 0 0 1 1 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 0 1 4.75 0ZM2.5 7v7.25c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V7Z"
-        />
-      </svg>
+      <CalendarIcon class="w-3 h-3 shrink-0" />
       <span>{data.iterationPath}</span>
     </div>
   {/if}
@@ -71,11 +69,7 @@
       onclick={openDetail}
       type="button"
     >
-      <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-        <path
-          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 000 2h8a1 1 0 100-2H6zm0 3a1 1 0 000 2h4a1 1 0 100-2H6z"
-        />
-      </svg>
+      <NotesIcon class="w-3.5 h-3.5" />
       <span>Details</span>
     </button>
   {/if}
