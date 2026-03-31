@@ -13,7 +13,7 @@
   } from '@xyflow/svelte';
   import { invalidateAll } from '$app/navigation';
   import { setLayoutContext } from '$lib/state.svelte.js';
-  import StoryCard from '$lib/Story-Card.svelte';
+  import StoryCard from '$lib/StoryCard.svelte';
   import ConfigureIssuesDialog from '$lib/ConfigureIssuesDialog.svelte';
   import SettingsDialog from '$lib/SettingsDialog.svelte';
   import EdgeTypeFilter from '$lib/ElementTypeFilter.svelte';
