@@ -3,19 +3,7 @@
   import { getLayoutContext } from './state.svelte';
   import { getStateColor, getTypeColor } from './colors';
   import StoryDetailDialog from './StoryDetailDialog.svelte';
-
-  interface StoryData {
-    id: number;
-    title: string;
-    state: string;
-    estimationStoryPoints?: number;
-    estimationEffort?: number;
-    type?: string;
-    description?: string;
-    acceptanceCriteria?: string;
-    webUrl: string;
-    iterationPath?: string;
-  }
+  import type { StoryData } from '$lib/types';
 
   let { data, selected }: { data: StoryData; selected: boolean } = $props();
   let isDetailOpen = $state(false);

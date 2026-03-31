@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Gantt, Willow } from '@svar-ui/svelte-gantt';
-  import type { Node as StoryNode, Edge as StoryEdge } from '$lib/server/storymap';
+  import type { Node as StoryNode, Edge as StoryEdge } from '$lib/types';
   import GanttTaskBar from '$lib/GanttTaskBar.svelte';
 
   interface Props {

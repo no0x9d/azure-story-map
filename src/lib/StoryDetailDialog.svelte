@@ -1,19 +1,7 @@
 <script lang="ts">
   import { Dialog } from 'bits-ui';
   import { getStateColor, getTypeColor } from './colors';
-
-  interface StoryData {
-    id: number;
-    title: string;
-    state: string;
-    estimationStoryPoints?: number;
-    estimationEffort?: number;
-    type?: string;
-    description?: string;
-    acceptanceCriteria?: string;
-    webUrl: string;
-    iterationPath?: string;
-  }
+  import type { StoryData } from '$lib/types';
 
   let {
     open = $bindable(false),
