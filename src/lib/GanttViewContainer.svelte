@@ -9,6 +9,7 @@
     filterState,
     filteredNodes,
     deletedNodeIds,
+    hiddenNodeIds,
     graphEdges,
     onrefresh,
     onviewmodechange
@@ -16,6 +17,7 @@
     filterState: FilterState;
     filteredNodes: Node[];
     deletedNodeIds: Set<string>;
+    hiddenNodeIds: Set<string>;
     graphEdges: Edge[];
     onrefresh: () => void;
     onviewmodechange: (mode: 'storymap' | 'gantt') => void;
@@ -33,7 +35,10 @@
   </div>
   <div class="flex-1 min-h-0">
     <GanttView
-      nodes={filteredNodes.filter((n) => !deletedNodeIds.has(n.id.toString(10)))}
+      nodes={filteredNodes.filter((n) => {
+        const id = n.id.toString(10);
+        return !deletedNodeIds.has(id) && !hiddenNodeIds.has(id);
+      })}
       edges={graphEdges}
     />
   </div>

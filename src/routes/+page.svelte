@@ -69,6 +69,7 @@
     {filterState}
     filteredNodes={filterState.filteredNodes}
     deletedNodeIds={canvas.deletedNodeIds}
+    hiddenNodeIds={canvas.hiddenNodeIds}
     graphEdges={graph.edges}
     onrefresh={() => invalidateAll()}
     onviewmodechange={(mode) => (viewMode = mode)}

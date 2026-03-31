@@ -50,7 +50,7 @@ export class CanvasState {
   });
 
   /** Set of all node IDs hidden due to collapsed ancestors */
-  #hiddenNodeIds = $derived.by(() => {
+  hiddenNodeIds = $derived.by(() => {
     const hidden = new Set<string>();
     const collapse = (parentId: string) => {
       const children = this.#childrenMap.get(parentId);
@@ -72,7 +72,7 @@ export class CanvasState {
   /** SvelteFlow-formatted initial nodes derived from filtered data */
   #initialNodes = $derived.by(() =>
     this.#getFilteredNodes()
-      .filter((n) => !this.#hiddenNodeIds.has(n.id.toString(10)))
+      .filter((n) => !this.hiddenNodeIds.has(n.id.toString(10)))
       .map((n) => ({
         id: n.id.toString(10),
         type: 'storyCard' as const,
@@ -87,7 +87,7 @@ export class CanvasState {
       .filter((e) => {
         const sourceId = e.from.toString(10);
         const targetId = e.to.toString(10);
-        return !this.#hiddenNodeIds.has(sourceId) && !this.#hiddenNodeIds.has(targetId);
+        return !this.hiddenNodeIds.has(sourceId) && !this.hiddenNodeIds.has(targetId);
       })
       .map((e) => ({
         id: `${e.from}-${e.to}`,
