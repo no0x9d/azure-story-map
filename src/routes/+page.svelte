@@ -16,7 +16,7 @@
   import StoryCard from '$lib/StoryCard.svelte';
   import ConfigureIssuesDialog from '$lib/ConfigureIssuesDialog.svelte';
   import SettingsDialog from '$lib/SettingsDialog.svelte';
-  import EdgeTypeFilter from '$lib/ElementTypeFilter.svelte';
+  import VisualizationFilter from '$lib/VisualizationFilter.svelte';
   import SaveLayoutDialog, { type SavedState } from '$lib/SaveLayoutDialog.svelte';
   import type { PageProps } from './$types';
   import { untrack } from 'svelte';
@@ -437,7 +437,7 @@
         >
           <VerticalIcon />
         </button>
-        <EdgeTypeFilter
+        <VisualizationFilter
           edgeTypes={allEdgeTypes}
           {visibleEdgeTypes}
           {statesByType}
@@ -470,7 +470,7 @@
       >
         <RefreshIcon />
       </button>
-      <EdgeTypeFilter
+      <VisualizationFilter
         edgeTypes={allEdgeTypes}
         {visibleEdgeTypes}
         {statesByType}
