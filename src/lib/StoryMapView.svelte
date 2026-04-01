@@ -2,10 +2,10 @@
   import { Background, Controls, MiniMap, Panel, SvelteFlow } from '@xyflow/svelte';
   import StoryCard from '$lib/StoryCard.svelte';
   import SaveLayoutDialog, { type SavedState } from '$lib/SaveLayoutDialog.svelte';
-  import SettingsDialog from '$lib/SettingsDialog.svelte';
   import Toolbar from '$lib/Toolbar.svelte';
   import HorizontalIcon from '~icons/material-symbols/align-horizontal-center';
   import VerticalIcon from '~icons/material-symbols/align-vertical-center';
+  import SettingsIcon from '~icons/material-symbols/settings';
   import type { CanvasState } from '$lib/stores/canvas-state.svelte';
   import type { FilterState } from '$lib/stores/filter-state.svelte';
   import '@xyflow/svelte/dist/style.css';
@@ -14,19 +14,13 @@
     canvas,
     filterState,
     layout,
-    azureBaseUrl,
-    hasToken,
     onrefresh,
-    onviewmodechange,
     onimportstate
   }: {
     canvas: CanvasState;
     filterState: FilterState;
     layout: { isHorizontal: boolean };
-    azureBaseUrl: string | null;
-    hasToken: boolean;
     onrefresh: () => void;
-    onviewmodechange: (mode: 'storymap' | 'gantt') => void;
     onimportstate: (state: SavedState) => void;
   } = $props();
 
@@ -35,7 +29,6 @@
   };
 
   let saveLayoutOpen = $state(false);
-  let settingsOpen = $state(false);
 </script>
 
 <div style:height="100vh">
@@ -52,7 +45,7 @@
     <Background />
     <MiniMap />
     <Panel position="top-left">
-      <Toolbar {filterState} {onrefresh} viewMode="storymap" {onviewmodechange}>
+      <Toolbar {filterState} {onrefresh}>
         <SaveLayoutDialog
           bind:open={saveLayoutOpen}
           nodes={canvas.nodes}
@@ -78,7 +71,9 @@
       </Toolbar>
     </Panel>
     <Panel position="top-right">
-      <SettingsDialog bind:open={settingsOpen} {azureBaseUrl} {hasToken} />
+      <a href="/settings" class="rounded outline p-1 bg-white block" title="Settings"
+        ><SettingsIcon /></a
+      >
     </Panel>
   </SvelteFlow>
 </div>

@@ -6,29 +6,31 @@
   import RefreshIcon from '~icons/material-symbols/refresh';
   import StoryMapIcon from '~icons/material-symbols/account-tree';
   import GanttIcon from '~icons/material-symbols/view-timeline';
+  import { page } from '$app/state';
+  import { goto } from '$app/navigation';
 
   let {
     filterState,
     onrefresh,
-    viewMode,
-    onviewmodechange,
     children
   }: {
     filterState: FilterState;
     onrefresh: () => void;
-    viewMode: 'storymap' | 'gantt';
-    onviewmodechange: (mode: 'storymap' | 'gantt') => void;
     children?: Snippet;
   } = $props();
 
   let configureIssuesOpen = $state(false);
+
+  let viewMode = $derived(page.url.pathname.startsWith('/gantt') ? 'gantt' : 'storymap');
 
   let switchTitle = $derived(
     viewMode === 'storymap' ? 'Switch to Gantt View' : 'Switch to Story Map View'
   );
 
   function handleViewSwitch() {
-    onviewmodechange(viewMode === 'storymap' ? 'gantt' : 'storymap');
+    const target = viewMode === 'storymap' ? '/gantt' : '/storymap';
+    const search = page.url.search; // preserve ?wiql= / ?ids= query params
+    goto(`${target}${search}`);
   }
 </script>
 
