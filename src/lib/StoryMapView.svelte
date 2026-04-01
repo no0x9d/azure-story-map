@@ -14,6 +14,8 @@
     canvas,
     filterState,
     layout,
+    azureBaseUrl,
+    hasToken,
     onrefresh,
     onviewmodechange,
     onimportstate
@@ -21,6 +23,8 @@
     canvas: CanvasState;
     filterState: FilterState;
     layout: { isHorizontal: boolean };
+    azureBaseUrl: string | null;
+    hasToken: boolean;
     onrefresh: () => void;
     onviewmodechange: (mode: 'storymap' | 'gantt') => void;
     onimportstate: (state: SavedState) => void;
@@ -74,7 +78,7 @@
       </Toolbar>
     </Panel>
     <Panel position="top-right">
-      <SettingsDialog bind:open={settingsOpen} />
+      <SettingsDialog bind:open={settingsOpen} {azureBaseUrl} {hasToken} />
     </Panel>
   </SvelteFlow>
 </div>

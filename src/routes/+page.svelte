@@ -10,6 +10,8 @@
 
   let { data }: PageProps = $props();
   let graph = $derived(data.graph);
+  let azureBaseUrl = $derived(data.azureBaseUrl ?? null);
+  let hasToken = $derived(data.hasToken ?? false);
 
   let layout = $state({ isHorizontal: false });
   setLayoutContext(layout);
@@ -60,6 +62,8 @@
     {canvas}
     {filterState}
     {layout}
+    {azureBaseUrl}
+    {hasToken}
     onrefresh={() => invalidateAll()}
     onviewmodechange={(mode) => (viewMode = mode)}
     onimportstate={handleImportState}
@@ -71,6 +75,8 @@
     deletedNodeIds={canvas.deletedNodeIds}
     hiddenNodeIds={canvas.hiddenNodeIds}
     graphEdges={graph.edges}
+    {azureBaseUrl}
+    {hasToken}
     onrefresh={() => invalidateAll()}
     onviewmodechange={(mode) => (viewMode = mode)}
   />

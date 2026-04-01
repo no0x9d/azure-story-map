@@ -11,6 +11,8 @@
     deletedNodeIds,
     hiddenNodeIds,
     graphEdges,
+    azureBaseUrl,
+    hasToken,
     onrefresh,
     onviewmodechange
   }: {
@@ -19,6 +21,8 @@
     deletedNodeIds: Set<string>;
     hiddenNodeIds: Set<string>;
     graphEdges: Edge[];
+    azureBaseUrl: string | null;
+    hasToken: boolean;
     onrefresh: () => void;
     onviewmodechange: (mode: 'storymap' | 'gantt') => void;
   } = $props();
@@ -30,7 +34,7 @@
   <div class="flex items-center gap-1 p-2 bg-white border-b">
     <Toolbar {filterState} {onrefresh} viewMode="gantt" {onviewmodechange} />
     <div class="ml-auto">
-      <SettingsDialog bind:open={settingsOpen} />
+      <SettingsDialog bind:open={settingsOpen} {azureBaseUrl} {hasToken} />
     </div>
   </div>
   <div class="flex-1 min-h-0">
