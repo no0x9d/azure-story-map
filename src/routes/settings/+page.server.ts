@@ -1,8 +1,21 @@
 import { getCredentials, persistCredentials } from '$lib/server/azure-connection';
-import type { Actions } from './$types';
+import {
+  getConfluenceCredentials,
+  persistConfluenceCredentials
+} from '$lib/server/confluence-connection';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async () => {
+  const confluence = await getConfluenceCredentials();
+  return {
+    confluenceBaseUrl: confluence?.baseUrl ?? null,
+    confluenceEmail: confluence?.email ?? null,
+    hasConfluenceToken: confluence !== null
+  };
+};
 
 export const actions: Actions = {
-  default: async ({ request }) => {
+  azure: async ({ request }) => {
     const formData = await request.formData();
     const orgUrl = formData.get('azureBaseUrl') as string;
     const submittedToken = formData.get('azurePat') as string;
@@ -23,10 +36,39 @@ export const actions: Actions = {
 
     try {
       await persistCredentials(orgUrl, token);
-      return { success: true, message: 'Credentials saved successfully.' };
+      return { success: true, message: 'Azure credentials saved successfully.' };
     } catch (error) {
-      console.error('Error saving credentials:', error);
+      console.error('Error saving Azure credentials:', error);
       return { success: false, message: 'Failed to save credentials.' };
+    }
+  },
+
+  confluence: async ({ request }) => {
+    const formData = await request.formData();
+    const baseUrl = formData.get('confluenceBaseUrl') as string;
+    const email = formData.get('confluenceEmail') as string;
+    const submittedToken = formData.get('confluenceApiToken') as string;
+
+    if (!baseUrl || !email) {
+      return { success: false, message: 'Confluence URL and email are required.' };
+    }
+
+    // If no new token was submitted, keep the existing one
+    let apiToken = submittedToken;
+    if (!apiToken) {
+      const existing = await getConfluenceCredentials();
+      if (!existing?.apiToken) {
+        return { success: false, message: 'A Confluence API token is required.' };
+      }
+      apiToken = existing.apiToken;
+    }
+
+    try {
+      await persistConfluenceCredentials(baseUrl, email, apiToken);
+      return { success: true, message: 'Confluence credentials saved successfully.' };
+    } catch (error) {
+      console.error('Error saving Confluence credentials:', error);
+      return { success: false, message: 'Failed to save Confluence credentials.' };
     }
   }
 };
