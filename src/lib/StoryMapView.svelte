@@ -2,6 +2,7 @@
   import { Background, Controls, MiniMap, Panel, SvelteFlow } from '@xyflow/svelte';
   import StoryCard from '$lib/StoryCard.svelte';
   import SaveLayoutDialog, { type SavedState } from '$lib/SaveLayoutDialog.svelte';
+  import ExportDiagramButton from '$lib/ExportDiagramButton.svelte';
   import Toolbar from '$lib/Toolbar.svelte';
   import HorizontalIcon from '~icons/material-symbols/align-horizontal-center';
   import VerticalIcon from '~icons/material-symbols/align-vertical-center';
@@ -54,6 +55,7 @@
           visibleStatesByType={filterState.visibleStatesByType}
           onimport={onimportstate}
         />
+        <ExportDiagramButton />
         <button
           class="ml-3 rounded outline p-1 bg-white"
           title="Layout Top to Bottom"

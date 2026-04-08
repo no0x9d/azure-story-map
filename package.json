@@ -45,6 +45,7 @@
 		"@svar-ui/svelte-gantt": "^2.6.1",
 		"azure-devops-node-api": "^15.1.1",
 		"bits-ui": "^2.14.4",
+		"html-to-image": "^1.11.11",
 		"papaparse": "^5.5.3"
 	}
 }
